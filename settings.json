@@ -1,0 +1,12 @@
+﻿{
+  "sources": [
+    {
+      "token": "",
+      "key": "demo", // This is passed in as an argument and determines which source you use, must be unique
+      "identifier": "", // IG API username
+      "password": "", // IG API password
+      "sourceurl": "https://demo-api.ig.com", // Point to DEMO or LIVE url, default is https://demo-api.ig.com 
+      "X-IG-API-KEY": "56cd58a628b4f7fb494b54bfd2668d91e55fba74"
+    }
+  ]
+}
