@@ -1,0 +1,75 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <StartupObject>IGSB.Program</StartupObject>
+    <Authors>TycTak Ltd - Michael Clark (c) 2020</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="IGSBService\**" />
+    <Compile Remove="lib\**" />
+    <EmbeddedResource Remove="IGSBService\**" />
+    <EmbeddedResource Remove="lib\**" />
+    <None Remove="IGSBService\**" />
+    <None Remove="lib\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="ConsumeModel.cs" />
+    <Compile Remove="IGClient.cs" />
+    <Compile Remove="IGRestApiClient.cs" />
+    <Compile Remove="IGStreamingApiClient.cs" />
+    <Compile Remove="IPropertyEventDispatcher.cs" />
+    <Compile Remove="ModelInput.cs" />
+    <Compile Remove="ModelOutput.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="NLog" Version="4.7.2" />
+    <PackageReference Include="System.Windows.Extensions" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IGSBService\IGSBService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Language.Designer.cs">
+      <DependentUpon>Language.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Language.resx">
+      <LastGenOutput>Language.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="watchFileBitcoin.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="watchFileDow.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="watchFileRsi.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="watchFileFtse.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

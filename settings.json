@@ -1,0 +1,12 @@
+﻿{
+  "sources": [
+    {
+      "token": "",
+      "key": "demo",
+      "identifier": "jumboclarkie",
+      "password": "A1819668a",
+      "sourceurl": "https://demo-api.ig.com",
+      "X-IG-API-KEY": "56cd58a628b4f7fb494b54bfd2668d91e55fba74"
+    }
+  ]
+}
