@@ -4,6 +4,7 @@ using System.Resources;
 using System.Threading;
 using static IGSB.IGClient;
 
+
 namespace IGSB
 {
     class Log
