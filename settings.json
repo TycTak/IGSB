@@ -1,5 +1,5 @@
 ﻿{
-  // The following, 'identifier', 'password', 'sourceurl' and X-IG-API-KEY is supplied to you when you register to use IG API on the IG web site
+  // The following, 'identifier', 'password', 'sourceurl' and X-IG-API-KEY are supplied to you when you register to use IG API on the IG web site
   "sources": [
     {
       "token": "", // Leave this element blank and in place
