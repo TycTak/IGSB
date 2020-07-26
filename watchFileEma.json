@@ -1,0 +1,60 @@
+{
+  "watchfileid": "26105170-2B3E-4C1C-8BE3-B6D802D8D937",
+  "watchname": "Test List",
+  "currency":  "GBP",
+  "alias": [
+    {
+      "name": "CS.D.BITCOIN.TODAY.IP",
+      "alias": "epic"
+    },
+    {
+      "name": "ftse",
+      "alias": "schemaname"
+    },
+    {
+      "name": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "alias": "schemaid"
+    },
+    {
+      "name": "normalise,6000,7000",
+      "alias": "epictransform"
+    },
+    {
+      "name": "normalise,0,100",
+      "alias": "rsitransform"
+    }
+  ],
+  "schemas": [
+    {
+      "schemaid": "{schemaid}",
+      "schemaname": "{schemaname}",
+      "instruments": [
+        {
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{epic}",
+          "datatype": "double6",
+          "transform": "{epictransform}",
+          "value": "OFFER"
+        },
+        {
+          "key": "ema",
+          "name": "Ema",
+          "datatype": "double6",
+          "transform": "{rsitransform}",
+          "value": "ema,0;offer,0>-10",
+          "unit": "ticks"
+        },
+        {
+          "key": "average",
+          "name": "Average",
+          "datatype": "double6",
+          "transform": "{rsitransform}",
+          "value": "average,0;offer,0>-10",
+          "unit": "ticks"
+        }
+      ]
+    }
+  ]
+}

@@ -99,7 +99,7 @@ namespace IGSB
 
             retval = (splt.Length == (cmdArgs.Count - 1) ? retval : false);
 
-            if (!retval && displayError) M(enmMessageType.Error, "ERROR, invalid parameters");
+            if (!retval && displayError) R("INVALID_PARAMETERS");
 
             return retval;
         }
@@ -185,6 +185,8 @@ namespace IGSB
                         if (Validate("", cmdArgs))
                         {
                             IGClient.StreamDisplay = enmContinuousDisplay.Subscription;
+                            //R("SUBSCRIPTION_CONTINUOUS");
+                            //R("{SUBSCRIPTION}{CONTINUOUS_DISPLAY}{0}", (string.IsNullOrEmpty(IGClient.Filter) ? "" : String.Format("{{FILTER_ON}}[{0}]", IGClient.Filter)));
                             M(enmMessageType.Info, $"SUBSCRIPTION, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", filtered on [{IGClient.Filter}]")} >");
                         }
                     }

@@ -61,11 +61,56 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to , continuous display mode.
+        /// </summary>
+        internal static string CONTINUOUS_DISPLAY {
+            get {
+                return ResourceManager.GetString("CONTINUOUS_DISPLAY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to , filtered on [{0}] &gt;.
+        /// </summary>
+        internal static string FILTERED_ON {
+            get {
+                return ResourceManager.GetString("FILTERED_ON", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR;Invalid parameters.
+        /// </summary>
+        internal static string INVALID_PARAMETERS {
+            get {
+                return ResourceManager.GetString("INVALID_PARAMETERS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ERROR;Data capture is currently on pause, you need to start first.
         /// </summary>
         internal static string NEED_TO_RESTART {
             get {
                 return ResourceManager.GetString("NEED_TO_RESTART", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SUBSCRIPTION.
+        /// </summary>
+        internal static string SUBSCRIPTION {
+            get {
+                return ResourceManager.GetString("SUBSCRIPTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to INFO;SUBSCRIPTION, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? &quot;&quot; : $&quot;, filtered on [{IGClient.Filter}]&quot;)} &gt;.
+        /// </summary>
+        internal static string SUBSCRIPTION_CONTINUOUS {
+            get {
+                return ResourceManager.GetString("SUBSCRIPTION_CONTINUOUS", resourceCulture);
             }
         }
     }

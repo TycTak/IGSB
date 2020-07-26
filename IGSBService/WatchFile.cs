@@ -164,6 +164,7 @@ namespace IGSB
                     // TODO Key is not allowed with _ at the end, this is used to indicate a transformed field
                     // TODO Predict key must be the first column, now called isnewrecord
                     // TODO All formula items must reference rows <=0 i.e. minus figures or zero
+                    // TODO Range values must be 2 items or more
                     foreach (JObject instrument in schema["instruments"])
                     {
                         var isActive = (instrument.ContainsKey("isactive") ? bool.Parse(instrument["isactive"].ToString()) : true);

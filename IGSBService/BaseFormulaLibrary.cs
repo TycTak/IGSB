@@ -1,7 +1,9 @@
 ﻿using Akka.Util.Internal;
+using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
 using static IGSB.BaseCodeLibrary;
 using static IGSB.WatchFile;
@@ -38,6 +40,8 @@ namespace IGSB
             public int Max { get; set; }
             public enmType Type { get; set; }
             public enmDataType DataType { get; set; }
+
+            public Dictionary<string, string> Settings { get; set; }
         }
 
         private Dictionary<string, LocalFormula> CachedFormula { get; set; } = new Dictionary<string, LocalFormula>();
@@ -122,6 +126,7 @@ namespace IGSB
                 retval.Unit = formula.Unit;
                 retval.Type = formula.Type;
                 retval.DataType = formula.DataType;
+
                 int min = int.MaxValue;
                 int max = int.MinValue;
 
@@ -279,7 +284,7 @@ namespace IGSB
             changedinterval, // done
             average, // done
             averageenvelope,
-            ema,
+            ema, // done
             rsi, // done
             macd,
             bollinger,
@@ -397,6 +402,22 @@ namespace IGSB
                             newValue = String.Format("{0:0.00}", average);
                         }
                         break;
+                    case enmProcess.ema:
+                        if (selectedIndex.Count >= 3)
+                        {
+                            newValue = String.Format("{0:0.00}", Formula_EMA(formula, localFormula, selectedIndex, values));
+                        }
+                        break;
+                    case enmProcess.macd:
+                        if (selectedIndex.Count >= 3)
+                        {
+                            var min = Convert.ToDouble(formula.Settings["min"]);
+                            var mid = Convert.ToDouble(formula.Settings["mid"]);
+                            var max = Convert.ToDouble(formula.Settings["max"]);
+
+                            newValue = String.Format("{0:0.00}", Formula_EMA(formula, localFormula, selectedIndex, values));
+                        }
+                        break;
                     case enmProcess.rsi:
                         if (selectedIndex.Count >= 3)
                         {
@@ -404,7 +425,6 @@ namespace IGSB
                             var loss = 0d;
                             var times = string.Empty;
 
-                            //Console.WriteLine("START");
                             for (var i = 2; i < selectedIndex.Count; i++)
                             {
                                 var value1 = values[selectedIndex[i]];
@@ -436,6 +456,39 @@ namespace IGSB
                 
                 target.Values[localFormula.Items[0].FieldName] = newValue;
             }
+        }
+
+        private double Formula_EMA(SchemaInstrument formula, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        {
+            double retval;
+
+            var item = localFormula.Items[selectedIndex.Count - 1];
+            var current = values[selectedIndex[selectedIndex.Count - 1]];
+            var previous = values[selectedIndex[selectedIndex.Count - 2]];
+
+            var closing = Double.Parse(current.Values[item.FieldName]);
+            var previousEma = Double.Parse(previous.Values[localFormula.Items[0].FieldName]);
+
+            if (previousEma == 0)
+            {
+                var sum = 0d;
+                for (var i = 1; i < selectedIndex.Count; i++)
+                {
+                    var value1 = values[selectedIndex[i]];
+                    var item1 = localFormula.Items[i];
+                    sum += Double.Parse(value1.Values[item1.FieldName]);
+                }
+
+                retval = (sum / (selectedIndex.Count - 1));
+            }
+            else
+            {
+                var multiplier = (2d / (selectedIndex.Count + 1));
+                var ema = closing * multiplier + previousEma * (1 - multiplier);
+                retval = ema;
+            }
+
+            return retval;
         }
     }
 }

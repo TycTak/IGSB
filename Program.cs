@@ -22,7 +22,7 @@ namespace IGSB
             try
             {
                 var parsedArgs = GetArgs(args);
-                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.M(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Maps to source key in settings file (mandatory), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)");
+                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Message(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Maps to source key in settings file (mandatory), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)");
 
                 var watchFile = parsedArgs.Single(x => x.Key == "wf").Value;
                 var sourceKey = parsedArgs.Single(x => x.Key == "ss").Value;
@@ -31,14 +31,14 @@ namespace IGSB
 
                 if (string.IsNullOrEmpty(appPassword)) appPassword = Log.GetPassword($"Loading {watchFile} and source {sourceKey}, enter authentication password to confirm\nPassword: ");
 
-                IGClient.Initialise(Log.M, Log.KeyPressed, Log.Beep, Log.R, Log.ConfirmText, Log.ConfirmChar);
+                IGClient.Initialise(Log.Message, Log.KeyPressed, Log.Beep, Log.Response, Log.ConfirmText, Log.ConfirmChar);
 
                 if (!IGClient.Authenticate(settingsFile, sourceKey, watchFile, appPassword))
-                    Log.M(IGClient.enmMessageType.Exit, $"Unable to authenticate and start");
+                    Log.Message(IGClient.enmMessageType.Exit, $"Unable to authenticate and start");
                 else
                 {
-                    Log.M(enmMessageType.Info, "Type 'start' to start capturing of data");
-                    Log.M(enmMessageType.Info, "Type 'help' or '/?' for available commands");
+                    Log.Message(enmMessageType.Info, "Type 'start' to start capturing of data");
+                    Log.Message(enmMessageType.Info, "Type 'help' or '/?' for available commands");
 
                     var commands = new Commands();
 

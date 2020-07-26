@@ -100,7 +100,7 @@ namespace IGSB
             return password;
         }
 
-        static public void M(enmMessageType messageType, string message)
+        static public void Message(enmMessageType messageType, string message)
         {
             switch (messageType)
             {
@@ -121,7 +121,7 @@ namespace IGSB
             }
         }
 
-        static public void R(string code)
+        static public void Response(string code)
         {
             var rm = new ResourceManager(typeof(Language));
             var text = rm.GetString(code).Split(";");
@@ -129,7 +129,27 @@ namespace IGSB
 
             var messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
 
-            M(messageType, message);
+            Message(messageType, message);
+        }
+
+        static public void Response(string message, params string[] args)
+        {
+            var rm = new ResourceManager(typeof(Language));
+
+            message = String.Format(message, args);
+            var text = message.Split("{");
+
+            //foreach (var key in keyWords)
+            //{
+            //    message.Replace($"{key}", rm.GetString(key));
+            //}
+            
+            //var text = rm.GetString(code).Split(";");
+            //var message = text[1] + $" ({code})";
+
+            var messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
+
+            Message(messageType, message);
         }
 
         static public bool ConfirmChar(string message, char accept)
