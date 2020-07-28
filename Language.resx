@@ -120,6 +120,9 @@
   <data name="CONTINUOUS_DISPLAY" xml:space="preserve">
     <value>continuous display mode</value>
   </data>
+  <data name="DATASET_EMPTIED" xml:space="preserve">
+    <value>INFO;Dataset emptied</value>
+  </data>
   <data name="FILTERED_ON" xml:space="preserve">
     <value>filtered on </value>
   </data>
@@ -127,9 +130,15 @@
     <value>ERROR;Invalid parameters</value>
   </data>
   <data name="NEED_TO_RESTART" xml:space="preserve">
-    <value>ERROR;Data capture is currently on pause, you need to start first</value>
+    <value>ERROR;Data capture is currently on pause, you need to 'begin' first</value>
+  </data>
+  <data name="NO_SCHEMA" xml:space="preserve">
+    <value>ERROR;Schema not found</value>
   </data>
   <data name="SUBSCRIPTION" xml:space="preserve">
     <value>INFO;SUBSCRIPTION</value>
+  </data>
+  <data name="UNKNOWN" xml:space="preserve">
+    <value>ERROR;Unknown command, /? for help</value>
   </data>
 </root>

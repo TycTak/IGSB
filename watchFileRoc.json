@@ -18,10 +18,6 @@
     {
       "name": "normalise,6000,7000",
       "alias": "epictransform"
-    },
-    {
-      "name": "normalise,0,100",
-      "alias": "roctransform"
     }
   ],
   "schemas": [
@@ -35,13 +31,12 @@
           "key": "offer",
           "transform": "{epictransform}",
           "name": "MARKET:{epic}",
-          "datatype": "double",
+          "datatype": "double6",
           "value": "OFFER"
         },
         {
           "key": "roc",
           "name": "Roc",
-          "transform": "{roctransform}",
           "datatype": "double",
           "value": "roc,0;offer,0;offer,-10",
           "unit": "ticks"

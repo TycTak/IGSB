@@ -70,6 +70,15 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to INFO;Dataset emptied.
+        /// </summary>
+        internal static string DATASET_EMPTIED {
+            get {
+                return ResourceManager.GetString("DATASET_EMPTIED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to filtered on .
         /// </summary>
         internal static string FILTERED_ON {
@@ -88,11 +97,20 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;Data capture is currently on pause, you need to start first.
+        ///   Looks up a localized string similar to ERROR;Data capture is currently on pause, you need to &apos;begin&apos; first.
         /// </summary>
         internal static string NEED_TO_RESTART {
             get {
                 return ResourceManager.GetString("NEED_TO_RESTART", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR;Schema not found.
+        /// </summary>
+        internal static string NO_SCHEMA {
+            get {
+                return ResourceManager.GetString("NO_SCHEMA", resourceCulture);
             }
         }
         
@@ -102,6 +120,15 @@ namespace IGSB {
         internal static string SUBSCRIPTION {
             get {
                 return ResourceManager.GetString("SUBSCRIPTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR;Unknown command, /? for help.
+        /// </summary>
+        internal static string UNKNOWN {
+            get {
+                return ResourceManager.GetString("UNKNOWN", resourceCulture);
             }
         }
     }

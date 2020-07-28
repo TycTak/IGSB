@@ -49,7 +49,6 @@ namespace IGSB
             this.transformInstruments = instruments.FindAll(x => !string.IsNullOrEmpty(x.Transform));
             this.isNewRecordEventColumnName = instruments.Single<SchemaInstrument>(x => x.IsNewRecordEvent).Key;
             this.instrumentKeyed = new Dictionary<string, List<SchemaInstrument>>();
-            //columns.Where(x => !x.IsFuture)
 
             foreach (var instrument in instruments.FindAll(x => x.Type == enmType.capture))
             {

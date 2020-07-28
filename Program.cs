@@ -37,7 +37,7 @@ namespace IGSB
                     Log.Message(IGClient.enmMessageType.Exit, $"Unable to authenticate and start");
                 else
                 {
-                    Log.Message(enmMessageType.Info, "Type 'start' to start capturing of data");
+                    Log.Message(enmMessageType.Info, "Type 'begin' or '/bc' to begin collecting data");
                     Log.Message(enmMessageType.Info, "Type 'help' or '/?' for available commands");
 
                     var commands = new Commands();
