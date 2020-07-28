@@ -13,6 +13,7 @@ namespace IGSB
         private Dictionary<string, List<SchemaInstrument>> instrumentKeyed;
         private Dictionary<string, string> settings;
         private List<SchemaInstrument> instruments;
+        private List<SchemaInstrument> transformInstruments;
         private List<SchemaInstrument> schemaFormulas;
         private List<SchemaInstrument> columns;
 
@@ -40,24 +41,26 @@ namespace IGSB
         public void Initialise(Dictionary<string, string> settings, List<SchemaInstrument> instruments)
         {
             this.instruments = instruments;
+
             this.settings = settings;
-            this.instrumentKeyed = new Dictionary<string, List<SchemaInstrument>>();
             this.schemaFormulas = instruments.FindAll(x => x.Type == SchemaInstrument.enmType.formula);
-            this.columns = instruments.FindAll(x => x.IsColumn);
-            completedDefaultValue = instruments.Find(x => x.Key == "completed").Value;
+            this.columns = instruments.FindAll(x => x.Key != "completed" && !x.IsFuture);
+            this.completedDefaultValue = instruments.Find(x => x.Key == "completed").Value;
+            this.transformInstruments = instruments.FindAll(x => !string.IsNullOrEmpty(x.Transform));
+            this.isNewRecordEventColumnName = instruments.Single<SchemaInstrument>(x => x.IsNewRecordEvent).Key;
+            this.instrumentKeyed = new Dictionary<string, List<SchemaInstrument>>();
+            //columns.Where(x => !x.IsFuture)
 
             foreach (var instrument in instruments.FindAll(x => x.Type == enmType.capture))
             {
                 var key = $"{instrument.Name}_{instrument.Value}";
-                if (!instrumentKeyed.ContainsKey(key))
-                    instrumentKeyed.Add(key, new List<SchemaInstrument>() { instrument });
+                if (!this.instrumentKeyed.ContainsKey(key))
+                    this.instrumentKeyed.Add(key, new List<SchemaInstrument>() { instrument });
                 else
-                    instrumentKeyed[key].Add(instrument);
+                    this.instrumentKeyed[key].Add(instrument);
             }
 
             Reset();
-
-            isNewRecordEventColumnName = instruments.Single<SchemaInstrument>(x => x.IsNewRecordEvent).Key;
         }
 
         private ValueInstrument NewRecord()
@@ -154,14 +157,14 @@ namespace IGSB
 
                     if (isNewRecord)
                     {
-                        foreach (var instrument in instruments)
+                        foreach (var instrument in transformInstruments)
                         {
                             formulaLib.TransformData(instrument, instruments, Values);
                         }
 
                         var regex = new Regex(Regex.Escape("X"));
 
-                        foreach (var column in columns.Where(x => !x.IsFuture))
+                        foreach (var column in columns)
                         {
                             var temp = currentRecord.Values[column.Key];
 

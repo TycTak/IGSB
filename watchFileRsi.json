@@ -43,7 +43,7 @@
           "name": "Rsi",
           "datatype": "double6",
           "transform": "{rsitransform}",
-          "value": "rsi30,0;offer,0>-10",
+          "value": "rsi30,0;offer,0>-30",
           "unit": "ticks"
         },
         {

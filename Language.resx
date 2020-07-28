@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CONTINUOUS_DISPLAY" xml:space="preserve">
-    <value>, continuous display mode</value>
+    <value>continuous display mode</value>
   </data>
   <data name="FILTERED_ON" xml:space="preserve">
-    <value>, filtered on [{0}] &gt;</value>
+    <value>filtered on </value>
   </data>
   <data name="INVALID_PARAMETERS" xml:space="preserve">
     <value>ERROR;Invalid parameters</value>
@@ -130,9 +130,6 @@
     <value>ERROR;Data capture is currently on pause, you need to start first</value>
   </data>
   <data name="SUBSCRIPTION" xml:space="preserve">
-    <value>SUBSCRIPTION</value>
-  </data>
-  <data name="SUBSCRIPTION_CONTINUOUS" xml:space="preserve">
-    <value>INFO;SUBSCRIPTION, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", filtered on [{IGClient.Filter}]")} &gt;</value>
+    <value>INFO;SUBSCRIPTION</value>
   </data>
 </root>

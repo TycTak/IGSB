@@ -232,8 +232,8 @@ namespace IGSB
 
         public void TransformData(SchemaInstrument formula, List<SchemaInstrument> instruments, List<ValueInstrument> values)
         {
-            if (!string.IsNullOrEmpty(formula.Transform))
-            {
+            //if (!string.IsNullOrEmpty(formula.Transform))
+            //{
                 var localFormula = GetUnit(formula);
                 var selected = GetSelected(values, localFormula);
 
@@ -270,7 +270,7 @@ namespace IGSB
                         values[selected[0]].Values[transformKey] = value;
                     }
                 }
-            }
+            //}
         }
 
         //https://www.babypips.com/learn/forex/how-to-use-moving-average-envelopes
@@ -283,10 +283,10 @@ namespace IGSB
             percentage, // done
             changedinterval, // done
             average, // done
-            averageenvelope,
             ema, // done
             rsi, // done
-            macd,
+            macd, // done
+            roc, // done
             bollinger,
             stochasticoscillator,
             standarddeviation,
@@ -300,8 +300,6 @@ namespace IGSB
             var isCapture = (selectedIndex.Count >= 1);
             var isValid = CheckValid(values, selectedIndex, localFormula);
 
-            values[values.Count - 1].Values[formula.Key] = "0";
-
             if (isCapture && isValid)
             {
                 var target = values[selectedIndex[0]];
@@ -313,22 +311,13 @@ namespace IGSB
                     case enmProcess.volatility:
                         if (selectedIndex.Count == 2)
                         {
-                            var value1 = values[selectedIndex[1]];
-                            var item1 = localFormula.Items[1];
-                            var tmp1 = int.Parse(value1.Values[item1.FieldName]);
-                            var tmp2 = int.Parse(target.Values[localFormula.Items[0].FieldName]);
-                            newValue = (tmp1 + tmp2).ToString();
+                            newValue = (GetInt(1, localFormula, selectedIndex, values) + GetInt(2, localFormula, selectedIndex, values)).ToString();
                         }
                         break;
                     case enmProcess.signal:
                         if (selectedIndex.Count == 3)
                         {
-                            var value1 = values[selectedIndex[1]];
-                            var item1 = localFormula.Items[1];
-                            var value2 = values[selectedIndex[2]];
-                            var item2 = localFormula.Items[2];
-                            var newValue2 = (Decimal.Parse(value1.Values[item1.FieldName]) - Decimal.Parse(value2.Values[item2.FieldName])).ToString();
-                            var change = Convert.ToDouble(newValue2);
+                            var change = (GetDouble(1, localFormula, selectedIndex, values) - GetDouble(2, localFormula, selectedIndex, values));
                             var signalRange = (formula.Settings.ContainsKey("range") ? double.Parse(formula.Settings["range"]) : 5);
 
                             newValue = (change > signalRange ? $"1": (change < -signalRange ? $"-1" : "0"));
@@ -337,9 +326,7 @@ namespace IGSB
                     case enmProcess.getvalue:
                         if (selectedIndex.Count == 2)
                         {
-                            var value1 = values[selectedIndex[1]];
-                            var item1 = localFormula.Items[1];
-                            newValue = value1.Values[item1.FieldName];
+                            newValue = GetString(1, localFormula, selectedIndex, values);
                         }
                         break;
                     case enmProcess.count:
@@ -357,33 +344,32 @@ namespace IGSB
                     case enmProcess.changedvalue:
                         if (selectedIndex.Count == 3)
                         {
-                            var value1 = values[selectedIndex[1]];
-                            var item1 = localFormula.Items[1];
-                            var value2 = values[selectedIndex[2]];
-                            var item2 = localFormula.Items[2];
-                            newValue = (Decimal.Parse(value1.Values[item1.FieldName]) - Decimal.Parse(value2.Values[item2.FieldName])).ToString();
+                            newValue = (GetDouble(1, localFormula, selectedIndex, values) - GetDouble(2, localFormula, selectedIndex, values)).ToString();
                         }
                         break;
                     case enmProcess.percentage:
                         if (selectedIndex.Count == 3)
                         {
-                            var value1 = values[selectedIndex[1]];
-                            var item1 = localFormula.Items[1];
-                            var value2 = values[selectedIndex[2]];
-                            var item2 = localFormula.Items[2];
-                            var val1 = Decimal.Parse(value1.Values[item1.FieldName]);
-                            var val2 = Decimal.Parse(value2.Values[item2.FieldName]);
-                            var difference = (val1 - val2);
-                            var percentage = difference / ((val1 + val2) / 2) * 100;
+                            var v1 = GetDouble(1, localFormula, selectedIndex, values);
+                            var v2 = GetDouble(2, localFormula, selectedIndex, values);
+                            var difference = (v1 - v2);
+                            var percentage = difference / ((v1 + v2) / 2) * 100;
                             newValue = String.Format("{0:0.000}", percentage);
+                        }
+                        break;
+                    case enmProcess.roc:
+                        if (selectedIndex.Count == 3)
+                        {
+                            var v1 = GetDouble(1, localFormula, selectedIndex, values);
+                            var v2 = GetDouble(2, localFormula, selectedIndex, values);
+                            var roc = ((v1 / v2) - 1) * 100;
+                            newValue = String.Format("{0:0.000}", roc);
                         }
                         break;
                     case enmProcess.changedinterval:
                         if (selectedIndex.Count == 3)
                         {
-                            var value1 = values[selectedIndex[1]];
-                            var value2 = values[selectedIndex[2]];
-                            newValue = (value1.Time - value2.Time).ToString();
+                            newValue = (GetValueInstrument(1, selectedIndex, values).Time - GetValueInstrument(2, selectedIndex, values).Time).ToString();
                         }
                         break;
                     case enmProcess.average:
@@ -392,9 +378,7 @@ namespace IGSB
                             var sum = 0d;
                             for (var i = 1; i < selectedIndex.Count; i++)
                             {
-                                var value1 = values[selectedIndex[i]];
-                                var item1 = localFormula.Items[i];
-                                sum += Double.Parse(value1.Values[item1.FieldName]);
+                                sum += GetDouble(i, localFormula, selectedIndex, values);
                             }
 
                             var average = (sum / (selectedIndex.Count - 1));
@@ -409,13 +393,12 @@ namespace IGSB
                         }
                         break;
                     case enmProcess.macd:
-                        if (selectedIndex.Count >= 3)
+                        if (selectedIndex.Count == 3)
                         {
-                            var min = Convert.ToDouble(formula.Settings["min"]);
-                            var mid = Convert.ToDouble(formula.Settings["mid"]);
-                            var max = Convert.ToDouble(formula.Settings["max"]);
+                            var v1 = GetDouble(1, localFormula, selectedIndex, values);
+                            var v2 = GetDouble(2, localFormula, selectedIndex, values);
 
-                            newValue = String.Format("{0:0.00}", Formula_EMA(formula, localFormula, selectedIndex, values));
+                            newValue = (Convert.ToDouble(v1) - Convert.ToDouble(v2)).ToString();
                         }
                         break;
                     case enmProcess.rsi:
@@ -427,13 +410,9 @@ namespace IGSB
 
                             for (var i = 2; i < selectedIndex.Count; i++)
                             {
-                                var value1 = values[selectedIndex[i]];
-                                var item1 = localFormula.Items[i];
+                                var v1 = GetDouble(i, localFormula, selectedIndex, values);
+                                var v2 = GetDouble(i - 1, localFormula, selectedIndex, values);
 
-                                var value2 = values[selectedIndex[i - 1]];
-
-                                var v1 = Double.Parse(value1.Values[item1.FieldName]);
-                                var v2 = Double.Parse(value2.Values[item1.FieldName]);
                                 var diff = v2 - v1;
 
                                 if (diff <= 0)
@@ -453,20 +432,46 @@ namespace IGSB
                         break;
                 }
 
+                newValue = (newValue == "0" ? null : newValue);
                 
                 target.Values[localFormula.Items[0].FieldName] = newValue;
             }
         }
 
-        private double Formula_EMA(SchemaInstrument formula, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        private string GetString(int index, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
         {
-            double retval;
+            var value = GetValueInstrument(index, selectedIndex, values);
+            var item = localFormula.Items[index];
 
-            var item = localFormula.Items[selectedIndex.Count - 1];
-            var current = values[selectedIndex[selectedIndex.Count - 1]];
-            var previous = values[selectedIndex[selectedIndex.Count - 2]];
+            return value.Values[item.FieldName];
+        }
 
-            var closing = Double.Parse(current.Values[item.FieldName]);
+        private ValueInstrument GetValueInstrument(int index, List<int> selectedIndex, List<ValueInstrument> values)
+        {
+            return values[selectedIndex[index]];
+        }
+
+        private double GetDouble(int index, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        {
+            var value = GetValueInstrument(index, selectedIndex, values);
+            var item = localFormula.Items[index];
+
+            return Double.Parse(value.Values[item.FieldName]);
+        }
+
+        private double GetInt(int index, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        {
+            var value = GetValueInstrument(index, selectedIndex, values);
+            var item = localFormula.Items[index];
+
+            return Int32.Parse(value.Values[item.FieldName]);
+        }
+
+        private string Formula_EMA(SchemaInstrument formula, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        {
+            var retval = string.Empty;
+            var closing = GetDouble(selectedIndex.Count - 1, localFormula, selectedIndex, values);
+            var previous = GetValueInstrument(selectedIndex.Count - 2, selectedIndex, values);
             var previousEma = Double.Parse(previous.Values[localFormula.Items[0].FieldName]);
 
             if (previousEma == 0)
@@ -474,18 +479,17 @@ namespace IGSB
                 var sum = 0d;
                 for (var i = 1; i < selectedIndex.Count; i++)
                 {
-                    var value1 = values[selectedIndex[i]];
-                    var item1 = localFormula.Items[i];
-                    sum += Double.Parse(value1.Values[item1.FieldName]);
+                    sum += GetDouble(i, localFormula, selectedIndex, values);
                 }
 
-                retval = (sum / (selectedIndex.Count - 1));
+                var avg = (sum / (selectedIndex.Count - 1));
+                retval = (avg == 0 ? null : avg.ToString());
             }
             else
             {
                 var multiplier = (2d / (selectedIndex.Count + 1));
                 var ema = closing * multiplier + previousEma * (1 - multiplier);
-                retval = ema;
+                retval = (ema == 0 ? null : ema.ToString());
             }
 
             return retval;

@@ -1,0 +1,94 @@
+{
+  "watchfileid": "26105170-2B3E-4C1C-8BE3-B6D802D8D937",
+  "watchname": "Test List",
+  "currency":  "GBP",
+  "alias": [
+    {
+      "name": "IX.D.FTSE.DAILY.IP",
+      "alias": "epic"
+    },
+    {
+      "name": "ftse",
+      "alias": "schemaname"
+    },
+    {
+      "name": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "alias": "schemaid"
+    },
+    {
+      "name": "normalise,6000,7000",
+      "alias": "epictransform"
+    },
+    {
+      "name": "normalise,0,10000",
+      "alias": "intervaltransform"
+    }
+  ],
+  "schemas": [
+    {
+      "schemaid": "{schemaid}",
+      "schemaname": "{schemaname}",
+      "instruments": [
+        {
+          "isactive": "true",
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{epic}",
+          "transform": "{epictransform}",
+          "datatype": "double",
+          "value": "OFFER"
+        },
+        {
+          "isactive": "true",
+          "type": "capture",
+          "key": "bid",
+          "name": "MARKET:{epic}",
+          "transform": "{epictransform}",
+          "datatype": "double",
+          "value": "BID"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "interval20",
+          "name": "ChangedInterval",
+          "transform": "{intervaltransform}",
+          "datatype": "double",
+          "value": "interval20,0;offer,0;offer,-20",
+          "unit": "ticks"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "interval30",
+          "name": "ChangedInterval",
+          "transform": "{intervaltransform}",
+          "datatype": "double",
+          "value": "interval30,0;offer,0;offer,-30",
+          "unit": "ticks"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "interval40",
+          "name": "ChangedInterval",
+          "transform": "{intervaltransform}",
+          "datatype": "double",
+          "value": "interval40,0;offer,0;offer,-40",
+          "unit": "ticks"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "interval50",
+          "name": "ChangedInterval",
+          "transform": "{intervaltransform}",
+          "datatype": "double",
+          "value": "interval50,0;offer,0;offer,-50",
+          "unit": "ticks"
+        }
+      ]
+    }
+  ]
+}

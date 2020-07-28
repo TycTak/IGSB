@@ -18,6 +18,10 @@
     {
       "name": "normalise,6000,7000",
       "alias": "epictransform"
+    },
+    {
+      "name": "normalise,0,100",
+      "alias": "rsitransform"
     }
   ],
   "schemas": [
@@ -30,42 +34,44 @@
           "type": "capture",
           "key": "offer",
           "name": "MARKET:{epic}",
+          "datatype": "double6",
           "transform": "{epictransform}",
-          "datatype": "double",
           "value": "OFFER"
         },
         {
-          "key": "ema12",
-          "iscolumn": "false",
-          "name": "Ema",
-          "datatype": "double",
+          "key": "average30",
+          "name": "Average",
+          "datatype": "double6",
           "transform": "{epictransform}",
-          "value": "ema12,0;offer,0>-12",
+          "value": "average30,0;offer,0>-30",
           "unit": "ticks"
         },
         {
-          "key": "ema26",
-          "iscolumn": "false",
-          "name": "Ema",
-          "datatype": "double",
+          "key": "average60",
+          "name": "Average",
+          "datatype": "double6",
           "transform": "{epictransform}",
-          "value": "ema26,0;offer,0>-26",
-          "unit": "ticks"
+          "value": "average60,0;offer,0>-60"
         },
         {
-          "key": "macd",
-          "iscolumn": "false",
-          "name": "Macd",
-          "datatype": "double",
-          "value": "macd,0;ema12,0;ema26,0",
-          "unit": "ticks"
+          "key": "average90",
+          "name": "Average",
+          "datatype": "double6",
+          "transform": "{epictransform}",
+          "value": "average90,0;offer,0>-90"
         },
         {
+          "ispredict": "false",
           "key": "signal",
-          "name": "Ema",
-          "datatype": "double",
-          "value": "signal,0;macd,0>-9",
-          "unit": "ticks"
+          "name": "Signal",
+          "datatype": "int",
+          "value": "signal,-30;offer,0;offer,-30",
+          "settings": [
+            {
+              "key": "range",
+              "value": "3"
+            }
+          ]
         }
       ]
     }

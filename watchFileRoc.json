@@ -18,6 +18,10 @@
     {
       "name": "normalise,6000,7000",
       "alias": "epictransform"
+    },
+    {
+      "name": "normalise,0,100",
+      "alias": "roctransform"
     }
   ],
   "schemas": [
@@ -29,42 +33,17 @@
           "isnewrecord": "true",
           "type": "capture",
           "key": "offer",
-          "name": "MARKET:{epic}",
           "transform": "{epictransform}",
+          "name": "MARKET:{epic}",
           "datatype": "double",
           "value": "OFFER"
         },
         {
-          "key": "ema12",
-          "iscolumn": "false",
-          "name": "Ema",
+          "key": "roc",
+          "name": "Roc",
+          "transform": "{roctransform}",
           "datatype": "double",
-          "transform": "{epictransform}",
-          "value": "ema12,0;offer,0>-12",
-          "unit": "ticks"
-        },
-        {
-          "key": "ema26",
-          "iscolumn": "false",
-          "name": "Ema",
-          "datatype": "double",
-          "transform": "{epictransform}",
-          "value": "ema26,0;offer,0>-26",
-          "unit": "ticks"
-        },
-        {
-          "key": "macd",
-          "iscolumn": "false",
-          "name": "Macd",
-          "datatype": "double",
-          "value": "macd,0;ema12,0;ema26,0",
-          "unit": "ticks"
-        },
-        {
-          "key": "signal",
-          "name": "Ema",
-          "datatype": "double",
-          "value": "signal,0;macd,0>-9",
+          "value": "roc,0;offer,0;offer,-10",
           "unit": "ticks"
         }
       ]

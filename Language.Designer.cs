@@ -61,7 +61,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to , continuous display mode.
+        ///   Looks up a localized string similar to continuous display mode.
         /// </summary>
         internal static string CONTINUOUS_DISPLAY {
             get {
@@ -70,7 +70,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to , filtered on [{0}] &gt;.
+        ///   Looks up a localized string similar to filtered on .
         /// </summary>
         internal static string FILTERED_ON {
             get {
@@ -97,20 +97,11 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SUBSCRIPTION.
+        ///   Looks up a localized string similar to INFO;SUBSCRIPTION.
         /// </summary>
         internal static string SUBSCRIPTION {
             get {
                 return ResourceManager.GetString("SUBSCRIPTION", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to INFO;SUBSCRIPTION, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? &quot;&quot; : $&quot;, filtered on [{IGClient.Filter}]&quot;)} &gt;.
-        /// </summary>
-        internal static string SUBSCRIPTION_CONTINUOUS {
-            get {
-                return ResourceManager.GetString("SUBSCRIPTION_CONTINUOUS", resourceCulture);
             }
         }
     }

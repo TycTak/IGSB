@@ -16,8 +16,8 @@
       "alias": "schemaid"
     },
     {
-      "name": "normalise,6000,7000",
-      "alias": "epictransform"
+      "name": "6000,7000",
+      "alias": "epic_normalise"
     }
   ],
   "schemas": [
@@ -26,45 +26,42 @@
       "schemaname": "{schemaname}",
       "instruments": [
         {
+          "isactive": "true",
           "isnewrecord": "true",
           "type": "capture",
           "key": "offer",
           "name": "MARKET:{epic}",
-          "transform": "{epictransform}",
+          "transform": "normalise,{epic_normalise}",
           "datatype": "double",
           "value": "OFFER"
         },
         {
-          "key": "ema12",
-          "iscolumn": "false",
-          "name": "Ema",
+          "isactive": "true",
+          "type": "capture",
+          "key": "bid",
+          "name": "MARKET:{epic}",
+          "transform": "normalise,{epic_normalise}",
           "datatype": "double",
-          "transform": "{epictransform}",
-          "value": "ema12,0;offer,0>-12",
+          "value": "BID"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "test",
+          "name": "GetValue",
+          "transform": "normalise,{epic_normalise}",
+          "datatype": "double",
+          "value": "test,-10;offer,0",
           "unit": "ticks"
         },
         {
-          "key": "ema26",
-          "iscolumn": "false",
-          "name": "Ema",
+          "isactive": "true",
+          "type": "formula",
+          "key": "test2",
+          "name": "GetValue",
+          "transform": "normalise,{epic_normalise}",
           "datatype": "double",
-          "transform": "{epictransform}",
-          "value": "ema26,0;offer,0>-26",
-          "unit": "ticks"
-        },
-        {
-          "key": "macd",
-          "iscolumn": "false",
-          "name": "Macd",
-          "datatype": "double",
-          "value": "macd,0;ema12,0;ema26,0",
-          "unit": "ticks"
-        },
-        {
-          "key": "signal",
-          "name": "Ema",
-          "datatype": "double",
-          "value": "signal,0;macd,0>-9",
+          "value": "test2,0;offer,0",
           "unit": "ticks"
         }
       ]

@@ -61,10 +61,13 @@
     <None Update="settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="watchFileBitcoin.json">
+    <None Update="watchFileChangedInterval.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="watchFileDow.json">
+    <None Update="watchFileGetValue.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="watchFileRoc.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="watchFileMacd.json">
@@ -73,10 +76,10 @@
     <None Update="watchFileEma.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="watchFileRsi.json">
+    <None Update="watchFileAverage.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="watchFileFtse.json">
+    <None Update="watchFileRsi.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

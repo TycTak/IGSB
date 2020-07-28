@@ -1,6 +1,7 @@
 ﻿using NLog;
 using System;
 using System.Resources;
+using System.Text.RegularExpressions;
 using System.Threading;
 using static IGSB.IGClient;
 
@@ -121,33 +122,43 @@ namespace IGSB
             }
         }
 
-        static public void Response(string code)
+        //static public void Response(string code)
+        //{
+        //    var rm = new ResourceManager(typeof(Language));
+        //    var text = rm.GetString(code).Split(";");
+        //    var message = text[1] + $" ({code})";
+
+        //    var messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
+
+        //    Message(messageType, message);
+        //}
+
+        static public void Response(string message)
         {
             var rm = new ResourceManager(typeof(Language));
-            var text = rm.GetString(code).Split(";");
-            var message = text[1] + $" ({code})";
 
-            var messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
+            var pattern = @"\<(.*?)\>";
+            var matches = Regex.Matches(message, pattern);
 
-            Message(messageType, message);
-        }
+            if (matches.Count == 0)
+                message = rm.GetString(message);
+            else
+            {
+                foreach (var key in matches)
+                {
+                    var code = key.ToString().Substring(1, key.ToString().Length - 2);
+                    message = message.Replace($"<{code}>", rm.GetString(code));
+                }
+            }
 
-        static public void Response(string message, params string[] args)
-        {
-            var rm = new ResourceManager(typeof(Language));
+            var text = message.Split(";");
+            enmMessageType messageType;
 
-            message = String.Format(message, args);
-            var text = message.Split("{");
-
-            //foreach (var key in keyWords)
-            //{
-            //    message.Replace($"{key}", rm.GetString(key));
-            //}
-            
-            //var text = rm.GetString(code).Split(";");
-            //var message = text[1] + $" ({code})";
-
-            var messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
+            if (text.Length == 2) {
+                message = text[1];
+                messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
+            } else
+                messageType = enmMessageType.Info;
 
             Message(messageType, message);
         }

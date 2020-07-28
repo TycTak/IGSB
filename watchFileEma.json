@@ -4,7 +4,7 @@
   "currency":  "GBP",
   "alias": [
     {
-      "name": "CS.D.BITCOIN.TODAY.IP",
+      "name": "IX.D.FTSE.DAILY.IP",
       "alias": "epic"
     },
     {
@@ -39,19 +39,24 @@
           "value": "OFFER"
         },
         {
-          "key": "ema",
+          "key": "ema9",
           "name": "Ema",
           "datatype": "double6",
-          "transform": "{rsitransform}",
-          "value": "ema,0;offer,0>-10",
+          "value": "ema9,0;offer,0>-9",
           "unit": "ticks"
         },
         {
-          "key": "average",
-          "name": "Average",
+          "key": "ema12",
+          "name": "Ema",
           "datatype": "double6",
-          "transform": "{rsitransform}",
-          "value": "average,0;offer,0>-10",
+          "value": "ema12,0;offer,0>-12",
+          "unit": "ticks"
+        },
+        {
+          "key": "ema26",
+          "name": "Ema",
+          "datatype": "double6",
+          "value": "ema26,0;offer,0>-26",
           "unit": "ticks"
         }
       ]

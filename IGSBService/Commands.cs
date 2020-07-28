@@ -185,13 +185,11 @@ namespace IGSB
                         if (Validate("", cmdArgs))
                         {
                             IGClient.StreamDisplay = enmContinuousDisplay.Subscription;
-                            //R("SUBSCRIPTION_CONTINUOUS");
-                            //R("{SUBSCRIPTION}{CONTINUOUS_DISPLAY}{0}", (string.IsNullOrEmpty(IGClient.Filter) ? "" : String.Format("{{FILTER_ON}}[{0}]", IGClient.Filter)));
-                            M(enmMessageType.Info, $"SUBSCRIPTION, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", filtered on [{IGClient.Filter}]")} >");
+                            R($"<SUBSCRIPTION>, <CONTINUOUS_DISPLAY>{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", <FILTERED_ON>[{IGClient.Filter}]")} >");
                         }
                     }
                     else
-                        R("NEED_TO_RESTART");
+                        R("<NEED_TO_RESTART>");
                     break;
                 case ">>":
                     if (!IGClient.Pause)
@@ -212,7 +210,7 @@ namespace IGSB
                         }
                     }
                     else
-                        R("NEED_TO_RESTART");
+                        R("<NEED_TO_RESTART>");
                     break;
                 case ">>>":
                     if (!IGClient.Pause)
@@ -231,7 +229,7 @@ namespace IGSB
                         }
                     }
                     else
-                        R("NEED_TO_RESTART");
+                        R("<NEED_TO_RESTART>");
                     break;
                 case "/f":
                 case "filter":
