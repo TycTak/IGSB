@@ -1,0 +1,86 @@
+{
+  "watchfileid": "26105170-2B3E-4C1C-8BE3-B6D802D8D937",
+  "watchname": "Test List",
+  "currency":  "GBP",
+  "alias": [
+    {
+      "name": "IX.D.FTSE.DAILY.IP",
+      "alias": "epic"
+    },
+    {
+      "name": "ftse",
+      "alias": "schemaname"
+    },
+    {
+      "name": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "alias": "schemaid"
+    },
+    {
+      "name": "normalise,6000,7000",
+      "alias": "epictransform"
+    }
+  ],
+  "schemas": [
+    {
+      "schemaid": "{schemaid}",
+      "schemaname": "{schemaname}",
+      "instruments": [
+        {
+          "isactive": "true",
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{epic}",
+          "transform": "{epictransform}",
+          "datatype": "double",
+          "value": "OFFER"
+        },
+        {
+          "isactive": "true",
+          "type": "capture",
+          "key": "bid",
+          "name": "MARKET:{epic}",
+          "transform": "{epictransform}",
+          "datatype": "double",
+          "value": "BID"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "value20",
+          "name": "ChangedValue",
+          "datatype": "double",
+          "value": "value20,0;offer,0;offer,-20",
+          "unit": "ticks"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "value30",
+          "name": "ChangedValue",
+          "datatype": "double",
+          "value": "value30,0;offer,0;offer,-30",
+          "unit": "ticks"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "value40",
+          "name": "ChangedValue",
+          "datatype": "double",
+          "value": "value40,0;offer,0;offer,-40",
+          "unit": "ticks"
+        },
+        {
+          "isactive": "true",
+          "type": "formula",
+          "key": "value50",
+          "name": "ChangedValue",
+          "datatype": "double",
+          "value": "value50,0;offer,0;offer,-50",
+          "unit": "ticks"
+        }
+      ]
+    }
+  ]
+}

@@ -106,11 +106,47 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ERROR;No dataset found.
+        /// </summary>
+        internal static string NO_DATASET {
+            get {
+                return ResourceManager.GetString("NO_DATASET", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR;No model found.
+        /// </summary>
+        internal static string NO_MODEL {
+            get {
+                return ResourceManager.GetString("NO_MODEL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR;No model found or cannot overwrite existing model.
+        /// </summary>
+        internal static string NO_MODEL_FOUND {
+            get {
+                return ResourceManager.GetString("NO_MODEL_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ERROR;Schema not found.
         /// </summary>
         internal static string NO_SCHEMA {
             get {
                 return ResourceManager.GetString("NO_SCHEMA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR;No schema found or cannot overwrite existing dataset.
+        /// </summary>
+        internal static string NO_SCHEMA_FOUND {
+            get {
+                return ResourceManager.GetString("NO_SCHEMA_FOUND", resourceCulture);
             }
         }
         

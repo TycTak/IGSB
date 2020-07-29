@@ -2,7 +2,7 @@
   "profiles": {
     "IGSB": {
       "commandName": "Project",
-      "commandLineArgs": "wf:watchFileRoc.json ss:demo cp:A1819668a st:developer_settings.json"
+      "commandLineArgs": "wf:watchFileStandardDeviation.json ss:demo cp:A1819668a st:developer_settings.json"
     }
   }
 }

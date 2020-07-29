@@ -132,8 +132,20 @@
   <data name="NEED_TO_RESTART" xml:space="preserve">
     <value>ERROR;Data capture is currently on pause, you need to 'begin' first</value>
   </data>
+  <data name="NO_DATASET" xml:space="preserve">
+    <value>ERROR;No dataset found</value>
+  </data>
+  <data name="NO_MODEL" xml:space="preserve">
+    <value>ERROR;No model found</value>
+  </data>
+  <data name="NO_MODEL_FOUND" xml:space="preserve">
+    <value>ERROR;No model found or cannot overwrite existing model</value>
+  </data>
   <data name="NO_SCHEMA" xml:space="preserve">
     <value>ERROR;Schema not found</value>
+  </data>
+  <data name="NO_SCHEMA_FOUND" xml:space="preserve">
+    <value>ERROR;No schema found or cannot overwrite existing dataset</value>
   </data>
   <data name="SUBSCRIPTION" xml:space="preserve">
     <value>INFO;SUBSCRIPTION</value>

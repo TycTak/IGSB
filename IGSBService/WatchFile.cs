@@ -253,7 +253,7 @@ namespace IGSB
                         IsPredict = false,
                         Settings = new Dictionary<string, string>(),
                         Type = SchemaInstrument.enmType.transform,
-                        Value = new String('X', watchSchema.SchemaInstruments.Where(x => (x.Type == enmType.capture || x.Type == enmType.formula) && !x.IsFuture).Count())
+                        Value = new String('X', watchSchema.SchemaInstruments.Where(x => (x.Type == enmType.transform || x.Type == enmType.capture || x.Type == enmType.formula) && !x.IsFuture).Count())
                     };
 
                     watchSchema.SchemaInstruments.Add(completedInstrument);

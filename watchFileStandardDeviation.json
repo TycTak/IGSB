@@ -18,6 +18,10 @@
     {
       "name": "normalise,6000,7000",
       "alias": "epictransform"
+    },
+    {
+      "name": "normalise,0,100",
+      "alias": "rsitransform"
     }
   ],
   "schemas": [
@@ -29,17 +33,29 @@
           "isnewrecord": "true",
           "type": "capture",
           "key": "offer",
-          "transform": "{epictransform}",
           "name": "MARKET:{epic}",
           "datatype": "double6",
+          "transform": "{epictransform}",
           "value": "OFFER"
         },
         {
-          "key": "roc",
-          "name": "Roc",
-          "datatype": "double",
-          "value": "roc,0;offer,0;offer,-30",
+          "key": "std30",
+          "name": "StandardDeviation",
+          "datatype": "double6",
+          "value": "std30,0;offer,0>-5",
           "unit": "ticks"
+        },
+        {
+          "key": "std60",
+          "name": "StandardDeviation",
+          "datatype": "double6",
+          "value": "std60,0;offer,0>-60"
+        },
+        {
+          "key": "std90",
+          "name": "StandardDeviation",
+          "datatype": "double6",
+          "value": "std90,0;offer,0>-90"
         }
       ]
     }

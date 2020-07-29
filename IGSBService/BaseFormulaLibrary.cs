@@ -275,7 +275,6 @@ namespace IGSB
 
         //https://www.babypips.com/learn/forex/how-to-use-moving-average-envelopes
         public enum enmProcess {
-            volatility,
             signal, // done
             getvalue, // done
             count, // done
@@ -308,12 +307,12 @@ namespace IGSB
 
                 switch (System.Enum.Parse(typeof(enmProcess), formula.Name.ToLower()))
                 {
-                    case enmProcess.volatility:
-                        if (selectedIndex.Count == 2)
-                        {
-                            newValue = (GetInt(1, localFormula, selectedIndex, values) + GetInt(2, localFormula, selectedIndex, values)).ToString();
-                        }
-                        break;
+                    //case enmProcess.volatility:
+                    //    if (selectedIndex.Count == 2)
+                    //    {
+                    //        newValue = (GetInt(1, localFormula, selectedIndex, values) + GetInt(2, localFormula, selectedIndex, values)).ToString();
+                    //    }
+                    //    break;
                     case enmProcess.signal:
                         if (selectedIndex.Count == 3)
                         {
@@ -426,6 +425,30 @@ namespace IGSB
                             var rsi = (100 - (100 / (1 + (gain / (selectedIndex.Count - 2)) / (loss / (selectedIndex.Count - 2)))));
 
                             newValue = String.Format("{0:0.00}", rsi);
+                        }
+                        break;
+                    case enmProcess.standarddeviation:
+                        if (selectedIndex.Count >= 3)
+                        {
+                            var sum = 0d;
+                            for (var i = 1; i < selectedIndex.Count; i++)
+                            {
+                                sum += GetDouble(i, localFormula, selectedIndex, values);
+                            }
+
+                            var average = (sum / (selectedIndex.Count - 1));
+
+                            sum = 0d;
+                            for (var i = 1; i < selectedIndex.Count; i++)
+                            {
+                                var val = GetDouble(i, localFormula, selectedIndex, values) - average;
+                                sum += (val * val);
+                            }
+
+                            average = (sum / (selectedIndex.Count - 1));
+                            var stdDev = (average * average);
+
+                            newValue = String.Format("{0:0.00}", average);
                         }
                         break;
                     default:

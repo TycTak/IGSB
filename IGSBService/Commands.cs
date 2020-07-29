@@ -1,16 +1,11 @@
-﻿using ConsoleApp6ML.ConsoleApp;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using static IGSB.WatchFile;
 using static IGSB.IGClient;
-using Microsoft.ML.Trainers;
-using Newtonsoft.Json;
 
 namespace IGSB
 {
@@ -316,7 +311,7 @@ namespace IGSB
                                 break;
                             case "i":
                             case "info":
-                                if (Validate("MS;MS", cmdArgs)) InfoModel(cmdArgs[2]);
+                                if (Validate("MS;OS", cmdArgs)) InfoModel(cmdArgs[2]);
                                 break;
                             case "c":
                             case "copy":
@@ -859,7 +854,7 @@ namespace IGSB
                 schemaObj.CodeLibrary.Reset();
                 R("DATASET_EMPTIED");
             }
-            else M(enmMessageType.Error, $"ERROR, unable to find that schema");
+            else R("NO_SCHEMA");
         }
 
         public void TypeOut(string schema, int start = 1, int rows = 10, bool includeAllColumns = false)
@@ -887,7 +882,7 @@ namespace IGSB
                     }
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, unable to find that schema");
+            else R("NO_SCHEMA");
         }
 
         public void Transactions(int days)
@@ -981,7 +976,7 @@ namespace IGSB
             M(enmMessageType.Info, "model copy <model> <newmodel> = Copy specific model (/mc)");
             M(enmMessageType.Info, "model bin = Close currently loaded model (/mb)");
             M(enmMessageType.Info, "model save <model> = Save current model to specific model name (/ms)");
-            M(enmMessageType.Info, "model info <schema|wildcards> = Get additional information for models (/mi)");
+            M(enmMessageType.Info, "model info [<schema|wildcards>] = Get additional information for models (/mi)");
             M(enmMessageType.Info, "model rename <model> <newmodel> = Rename model (/mr)");
             M(enmMessageType.Info, "model = Lists all models (/m)");
             M(enmMessageType.Warn, "train info <dataset> = Display last training results for dataset (/ti)");
@@ -1035,7 +1030,7 @@ namespace IGSB
                     M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10} line{(lines > 1 ? "s" : " ")}   {info.CreationTimeUtc}");
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, no dataset found");
+            else R("NO_DATASET");
         }
 
         public void HeadingsDataSet(string schema)
@@ -1060,7 +1055,7 @@ namespace IGSB
                     }
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, no dataset found");
+            else R("NO_DATASET");
         }
 
         public void DeleteDataSet(string schema)
@@ -1076,7 +1071,7 @@ namespace IGSB
                     M(enmMessageType.Info, $"Deleted dataset [{schemaName}]");
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, no dataset found");
+            else R("NO_DATASET");
         }
 
         public void RenameDataSet(string schema, string newSchema)
@@ -1086,7 +1081,7 @@ namespace IGSB
                 File.Move($@".\{schema}.csv", $@".\{newSchema}.csv");
                 M(enmMessageType.Info, $"Renamed dataset [{schema}] to [{newSchema}]");
             }
-            else M(enmMessageType.Error, $"ERROR, either no schema found or cannot overwrite existing dataset");
+            else R("NO_SCHEMA_FOUND");
         }
 
         public void CopyDataSet(string schema, string newSchema)
@@ -1096,7 +1091,7 @@ namespace IGSB
                 File.Copy($@".\{schema}.csv", $@".\{newSchema}.csv");
                 M(enmMessageType.Info, $"Copied dataset [{schema}] to [{newSchema}]");
             }
-            else M(enmMessageType.Error, $"ERROR, either no schema found or cannot overwrite existing dataset");
+            else R("NO_SCHEMA_FOUND");
         }
 
         public void DataSet()
@@ -1110,7 +1105,7 @@ namespace IGSB
                     M(enmMessageType.Info, $"{file.Substring(2, file.Length - 2 - 4)}");
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, no datasets found");
+            else R("NO_DATASET");
         }
 
         public string GetHeader(WatchFile.Schema schema, bool includeAllColumns = false, bool includePredicted = false)
@@ -1121,7 +1116,7 @@ namespace IGSB
             {
                 if ((instrument.IsColumn || includeAllColumns) && (!includePredicted || instrument.IsPredict))
                 {
-                    header += (string.IsNullOrEmpty(header) ? instrument.Key : $",{instrument.Key}");
+                    header += (string.IsNullOrEmpty(header) ? instrument.Key : $",{instrument.Key}{(!instrument.IsColumn ? "^" : "")}");
                 }
             }
 
@@ -1168,7 +1163,7 @@ namespace IGSB
                 }
 
                 IGClient.Pause = (alreadyPaused ? alreadyPaused : false);
-            } else M(enmMessageType.Error, $"ERROR, unable to find that schema");
+            } else R("NO_SCHEMA");
         }
 
 
@@ -1185,7 +1180,7 @@ namespace IGSB
                     M(enmMessageType.Info, $"Deleted model [{modelName}]");
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, no model found");
+            else R("NO_MODEL");
         }
 
         public void RenameModel(string model, string newModel)
@@ -1195,7 +1190,7 @@ namespace IGSB
                 File.Move($@".\{model}.zip", $@".\{newModel}.zip");
                 M(enmMessageType.Info, $"Renamed model [{model}] to [{newModel}]");
             }
-            else M(enmMessageType.Error, $"ERROR, either no model found or cannot overwrite existing model");
+            else R("NO_MODEL_FOUND");
         }
 
         public void CopyModel(string model, string newModel)
@@ -1205,7 +1200,7 @@ namespace IGSB
                 File.Copy($@".\{model}.zip", $@".\{newModel}.zip");
                 M(enmMessageType.Info, $"Copied model [{model}] to [{newModel}]");
             }
-            else M(enmMessageType.Error, $"ERROR, either no model found or cannot overwrite existing model");
+            else R("NO_MODEL_FOUND");
         }
 
         public void Model()
@@ -1219,11 +1214,13 @@ namespace IGSB
                     M(enmMessageType.Info, $"{model.Substring(2, model.Length - 2 - 4)}");
             }
         }
-            else M(enmMessageType.Error, $"ERROR, no models found");
+            else R("NO_MODEL");
         }
 
         public void InfoModel(string wildcard)
         {
+            wildcard = (string.IsNullOrEmpty(wildcard) ? "*" : wildcard);
+
             var files = Directory.GetFiles(@".\", $"{wildcard}.zip");
 
             if (files.Length > 0)
@@ -1234,7 +1231,7 @@ namespace IGSB
                     M(enmMessageType.Info, $"{model.Substring(2, model.Length - 2 - 4).PadRight(30),-30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))),5}k   {info.CreationTimeUtc}");
                 }
             }
-            else M(enmMessageType.Error, $"ERROR, no models found");
+            else R("NO_MODEL");
         }
     }
 }
