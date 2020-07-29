@@ -341,3 +341,4 @@ healthchecksdb
 
 # Project remove
 *_settings.json
+Properties/launchSettings.json
