@@ -22,14 +22,14 @@ namespace IGSB
             try
             {
                 var parsedArgs = GetArgs(args);
-                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Message(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Maps to source key in settings file (mandatory), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)");
+                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Message(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Map to source key in settings file (mandatory i.e. Demo, Live), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)");
 
                 var watchFile = parsedArgs.Single(x => x.Key == "wf").Value;
                 var sourceKey = parsedArgs.Single(x => x.Key == "ss").Value;
                 var appPassword = (parsedArgs.Exists(x => x.Key == "cp") ? parsedArgs.Single(x => x.Key == "cp").Value : "");
                 var settingsFile = (parsedArgs.Exists(x => x.Key == "st") ? parsedArgs.Single(x => x.Key == "st").Value : "settings.json");
 
-                if (string.IsNullOrEmpty(appPassword)) appPassword = Log.GetPassword($"Loading {watchFile} and source {sourceKey}, enter authentication password to confirm\nPassword: ");
+                if (string.IsNullOrEmpty(appPassword)) appPassword = Log.GetPassword($"Loading {watchFile} and source {sourceKey},\nenter authentication password to confirm\nPassword: ");
 
                 IGClient.Initialise(Log.Message, Log.KeyPressed, Log.Beep, Log.Response, Log.ConfirmText, Log.ConfirmChar);
 

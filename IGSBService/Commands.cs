@@ -459,6 +459,8 @@ namespace IGSB
 
                 var setting = GetSettings(settingsFile, sourceKey);
 
+                if (setting == null) M(enmMessageType.Exit, "No settings file or key found");
+
                 var unencryptedToken = setting["token"].ToString();
 
                 if (unencryptedToken.Equals(Token) || string.IsNullOrEmpty(unencryptedToken))
