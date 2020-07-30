@@ -22,7 +22,7 @@ namespace IGSB
             try
             {
                 var parsedArgs = GetArgs(args);
-                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Message(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Maps to source key in settings file (mandatory), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)");
+                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Message(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Maps to source key in settings file (mandatory), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)");
 
                 var watchFile = parsedArgs.Single(x => x.Key == "wf").Value;
                 var sourceKey = parsedArgs.Single(x => x.Key == "ss").Value;

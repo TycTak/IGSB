@@ -115,6 +115,15 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ERROR;No log file found.
+        /// </summary>
+        internal static string NO_LOGFILE {
+            get {
+                return ResourceManager.GetString("NO_LOGFILE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ERROR;No model found.
         /// </summary>
         internal static string NO_MODEL {

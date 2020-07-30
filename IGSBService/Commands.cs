@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using Akka.Dispatch.SysMsg;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Tensorflow.Summaries;
 using static IGSB.IGClient;
 
 namespace IGSB
@@ -271,9 +273,61 @@ namespace IGSB
                 case "cls":
                     if (Validate("", cmdArgs)) Console.Clear();
                     break;
+                case "/l":
+                case "log":
+                    if (Validate("", cmdArgs, false))
+                    {
+                        LogFile();
+                    }
+                    else
+                    {
+                        switch (cmdArgs[1].ToLower())
+                        {
+                            case "i":
+                            case "info":
+                                if (Validate("MS;OS", cmdArgs)) InfoLogFile($"{cmdArgs[2]}");
+                                break;
+                            case "t":
+                            case "type":
+                                if (Validate("MS;MN;MS", cmdArgs)) TypeLogFile(Convert.ToInt32(cmdArgs[2]), $"{cmdArgs[3]}");
+                                break;
+                            case "d":
+                            case "delete":
+                                if (Validate("MS;MS", cmdArgs)) DeleteLogFile($"{cmdArgs[2]}");
+                                break;
+                            case "r":
+                            case "rename":
+                                if (Validate("MS;MS;MS", cmdArgs)) RenameLogFile($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                break;
+                            case "c":
+                            case "copy":
+                                if (Validate("MS;MS;MS", cmdArgs)) CopyLogFile($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                break;
+                            default:
+                                R("UNKNOWN");
+                                break;
+                        }
+                    }
+                    break;
                 case "/a":
                 case "alias":
-                    if (Validate("", cmdArgs)) GetAliases();
+                    if (Validate("", cmdArgs, false))
+                    {
+                        GetAliases();
+                    } else
+                    {
+                        switch (cmdArgs[1].ToLower())
+                        {
+                            case "s":
+                            case "set":
+                                //var isReload = (cmdArgs[2] == "-r");
+                                if (Validate("MS;MS;MS;O~^-r$", cmdArgs)) SetAlias(IGClient.WatchFileName, $"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                break;
+                            default:
+                                R("UNKNOWN");
+                                break;
+                        }
+                    }
                     break;
                 case "/e":
                 case "eval":
@@ -974,10 +1028,10 @@ namespace IGSB
             M(enmMessageType.Info, "model load <model> = Load specific model (/ml)");
             M(enmMessageType.Info, "model delete <model> = Delete specific model (/md)");
             M(enmMessageType.Info, "model copy <model> <newmodel> = Copy specific model (/mc)");
+            M(enmMessageType.Info, "model rename <model> <newmodel> = Rename model (/mr)");
+            M(enmMessageType.Info, "model info [<schema|wildcards>] = Get additional information for models (/mi)");
             M(enmMessageType.Info, "model bin = Close currently loaded model (/mb)");
             M(enmMessageType.Info, "model save <model> = Save current model to specific model name (/ms)");
-            M(enmMessageType.Info, "model info [<schema|wildcards>] = Get additional information for models (/mi)");
-            M(enmMessageType.Info, "model rename <model> <newmodel> = Rename model (/mr)");
             M(enmMessageType.Info, "model = Lists all models (/m)");
             M(enmMessageType.Warn, "train info <dataset> = Display last training results for dataset (/ti)");
             M(enmMessageType.Info, "train <dataset> <predict> [columns|-c] = Train model from combinations in dataset to predict a specific column, -c uses all columns in dataset only (/t)");
@@ -1000,7 +1054,6 @@ namespace IGSB
             M(enmMessageType.Info, "sell <instrument> <size> <currency> = Sell a specific epic (/s)");
             M(enmMessageType.Info, "sell <instrument> = Sell a specific instrument (/s)");
             M(enmMessageType.Info, "get <instrument> = Get details on a specific instrument (/g)");
-            M(enmMessageType.Info, "alias = List of aliases (/a)");
             M(enmMessageType.Info, "cls = Clear screen (/cs)");
             M(enmMessageType.Info, "> = Show continuous subscription");
             M(enmMessageType.Info, ">> <schema> [-a] = Show continuous dataset for specific schema, -a include all columns");
@@ -1013,6 +1066,15 @@ namespace IGSB
             M(enmMessageType.Info, "filter [<text>] = Filter continuous list by specific text, or clear existing filter (/f)");
             M(enmMessageType.Info, "passwd <existingpassword> <newpassword> = Change password for settings and source (/p)");
             M(enmMessageType.Info, "exit = Exit application (/x)");
+            M(enmMessageType.Info, "alias = List of aliases (/a)");
+
+            M(enmMessageType.Info, "alias set <alias> <value> -r = Change a value for an alias in the current watch file, -r specifies that you reload the watch file (/as)");
+            M(enmMessageType.Info, "log = List all log files (/l)");
+            M(enmMessageType.Info, "log type <lines> <logfile> = Type last specified number of lines (max 250) of specified log file (/lt)");
+            M(enmMessageType.Info, "log delete <logfile> = Delete a specific log file (/ld)");
+            M(enmMessageType.Info, "log copy <logfile> <newlogfile> = Copy a specific log file (/ld)");
+            M(enmMessageType.Info, "log rename <logfile> <newlogfile> = Rename a specific log file (/lr)");
+            M(enmMessageType.Info, "log info [<logfile|wildcards>] = Get additional information for log files (/li)");
         }
 
         public void InfoDataSet(string schema)
@@ -1232,6 +1294,133 @@ namespace IGSB
                 }
             }
             else R("NO_MODEL");
+        }
+
+        public void InfoLogFile(string logFile)
+        {
+            logFile = (string.IsNullOrEmpty(logFile) ? "*" : logFile);
+
+            var logFiles = Directory.GetFiles(@".\", $"{logFile}.log");
+
+            if (logFiles.Length > 0)
+            {
+                foreach (var x in logFiles)
+                {
+                    var info = new FileInfo(x);
+                    var lines = File.ReadLines(x).Count();
+                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30),-30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))),5}k  {lines,10} line{(lines > 1 ? "s" : " ")}   {info.CreationTimeUtc}");
+                }
+            }
+            else R("NO_LOGFILE");
+        }
+
+
+        public void DeleteLogFile(string logFile)
+        {
+            var logfiles = Directory.GetFiles(@".\", $"{logFile}.log");
+
+            if (logfiles.Length > 0)
+            {
+                foreach (var x in logfiles)
+                {
+                    File.Delete(x);
+                    var logFileName = x.Substring(2, x.Length - 2 - 4);
+                    M(enmMessageType.Info, $"Deleted log file [{logFileName}]");
+                }
+            }
+            else R("NO_LOGFILE");
+        }
+
+        public void RenameLogFile(string logFile, string newLogFile)
+        {
+            if (File.Exists($@".\{logFile}.log") && !File.Exists($@".\{newLogFile}.log"))
+            {
+                File.Move($@".\{logFile}.log", $@".\{newLogFile}.log");
+                M(enmMessageType.Info, $"Renamed log file [{logFile}] to [{newLogFile}]");
+            }
+            else R("NO_LOGFILE");
+        }
+
+        public void CopyLogFile(string logFile, string newLogFile)
+        {
+            if (File.Exists($@".\{logFile}.log") && !File.Exists($@".\{newLogFile}.log"))
+            {
+                File.Copy($@".\{logFile}.log", $@".\{newLogFile}.log");
+                M(enmMessageType.Info, $"Copied log file [{logFile}] to [{newLogFile}]");
+            }
+            else R("NO_LOGFILE");
+        }
+
+        public void LogFile()
+        {
+            var files = Directory.GetFiles(@".\", "*.log");
+
+            if (files.Length > 0)
+            {
+                foreach (var file in files)
+                {
+                    M(enmMessageType.Info, $"{file.Substring(2, file.Length - 2 - 4)}");
+                }
+            }
+            else R("NO_LOGFILE");
+        }
+
+        public void TypeLogFile(int maxLines, string logFile)
+        {
+            maxLines = Math.Min(maxLines, 250);
+            logFile = $@".\{logFile}.log";
+
+            if (File.Exists(logFile))
+            {
+                var lines = new List<string>();
+
+                using (StreamReader file = File.OpenText(logFile))
+                {
+                    var line = string.Empty;
+
+                    do {
+                        line = file.ReadLine();
+                        lines.Add(line);
+
+                        if (lines.Count > maxLines)
+                        {
+                            lines.RemoveAt(0);
+                        }
+                    } while (!string.IsNullOrEmpty(line));
+                }
+
+                foreach (var line in lines)
+                {
+                    M(enmMessageType.Info, line);
+                }
+            }
+            else R("NO_LOGFILE");
+        }
+
+        public void SetAlias(string watchFile, string aliasKey, string value)
+        {
+            JObject watchFileJson;
+
+            using (StreamReader file = File.OpenText(watchFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                watchFileJson = (JObject)JToken.ReadFrom(reader);
+            }
+
+            foreach (JObject alias in watchFileJson["alias"])
+            {
+                if (alias["alias"].ToString().Equals(aliasKey))
+                {
+                    alias["name"] = value;
+                    break;
+                }
+            }
+
+            using (StreamWriter file = File.CreateText(watchFile))
+            using (JsonTextWriter writer = new JsonTextWriter(file))
+            {
+                watchFileJson.WriteTo(writer);
+            }
         }
     }
 }

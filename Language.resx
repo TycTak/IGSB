@@ -135,6 +135,9 @@
   <data name="NO_DATASET" xml:space="preserve">
     <value>ERROR;No dataset found</value>
   </data>
+  <data name="NO_LOGFILE" xml:space="preserve">
+    <value>ERROR;No log file found</value>
+  </data>
   <data name="NO_MODEL" xml:space="preserve">
     <value>ERROR;No model found</value>
   </data>
