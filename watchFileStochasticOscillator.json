@@ -1,0 +1,63 @@
+{
+  "watchfileid": "26105170-2B3E-4C1C-8BE3-B6D802D8D937",
+  "watchname": "Test List",
+  "currency": "GBP",
+  "alias": [
+    {
+      "name": "IX.D.FTSE.DAILY.IP",
+      "alias": "epic"
+    },
+    {
+      "name": "ftse",
+      "alias": "schemaname"
+    },
+    {
+      "name": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "alias": "schemaid"
+    },
+    {
+      "name": "normalise,5500,7000",
+      "alias": "epictransform"
+    },
+    {
+      "name": "normalise,0,100",
+      "alias": "rsitransform"
+    }
+  ],
+  "schemas": [
+    {
+      "schemaid": "{schemaid}",
+      "schemaname": "{schemaname}",
+      "instruments": [
+        {
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{epic}",
+          "datatype": "double6",
+          "transform": "{epictransform}",
+          "value": "OFFER"
+        },
+        {
+          "key": "std30",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "std30,0;offer,0>-5",
+          "unit": "ticks"
+        },
+        {
+          "key": "std60",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "std60,0;offer,0>-60"
+        },
+        {
+          "key": "std90",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "std90,0;offer,0>-90"
+        }
+      ]
+    }
+  ]
+}

@@ -286,9 +286,9 @@ namespace IGSB
             rsi, // done
             macd, // done
             roc, // done
+            standarddeviation, // done
             bollinger,
-            stochasticoscillator,
-            standarddeviation,
+            stochasticoscillator, // done
             averagedirectionalindex
         }
 
@@ -307,12 +307,6 @@ namespace IGSB
 
                 switch (System.Enum.Parse(typeof(enmProcess), formula.Name.ToLower()))
                 {
-                    //case enmProcess.volatility:
-                    //    if (selectedIndex.Count == 2)
-                    //    {
-                    //        newValue = (GetInt(1, localFormula, selectedIndex, values) + GetInt(2, localFormula, selectedIndex, values)).ToString();
-                    //    }
-                    //    break;
                     case enmProcess.signal:
                         if (selectedIndex.Count == 3)
                         {
@@ -449,6 +443,25 @@ namespace IGSB
                             var stdDev = (average * average);
 
                             newValue = String.Format("{0:0.00}", average);
+                        }
+                        break;
+                    case enmProcess.stochasticoscillator:
+                        if (selectedIndex.Count >= 3)
+                        {
+                            var max = 0d;
+                            var min = Double.MaxValue;
+                            for (var i = 1; i < selectedIndex.Count; i++)
+                            {
+                                var val = GetDouble(i, localFormula, selectedIndex, values);
+                                max = Math.Max(val, max);
+                                min = Math.Min(val, min);
+                            }
+
+                            var latest = GetDouble(1, localFormula, selectedIndex, values);
+
+                            var stoch = ((latest - min) / (max - min));
+
+                            newValue = String.Format("{0:0.00}", stoch);
                         }
                         break;
                     default:
