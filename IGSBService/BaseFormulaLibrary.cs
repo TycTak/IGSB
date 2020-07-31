@@ -287,9 +287,7 @@ namespace IGSB
             macd, // done
             roc, // done
             standarddeviation, // done
-            bollinger,
             stochasticoscillator, // done
-            averagedirectionalindex
         }
 
         public void ExecuteMethod(SchemaInstrument formula, List<ValueInstrument> values)

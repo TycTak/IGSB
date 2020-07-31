@@ -109,7 +109,7 @@ namespace IGSB
 
             if (args.Length > 0 && args[0].StartsWith("/") && args[0].Length > 2)
             {
-                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd]";
+                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac]";
 
                 if (!cmds.Contains(args[0]))
                 {
@@ -259,6 +259,13 @@ namespace IGSB
                     if (Validate("MS", cmdArgs, false))
                     {
                         Search($"{cmdArgs[1]}");
+                    }
+                    break;
+                case "/ac":
+                case "accounts":
+                    if (Validate("", cmdArgs, false))
+                    {
+                        Accounts();
                     }
                     break;
                 case "/x":
@@ -976,6 +983,21 @@ namespace IGSB
                 foreach (var found in search.Response["markets"])
                 {
                     M(enmMessageType.Info, $"{found["epic"].ToString(),-25}  {found["instrumentName"].ToString(),-40}");
+                }
+            }
+        }
+
+        public void Accounts()
+        {
+            var accounts = IGCommand.Accounts(IGClient.Authentication.APIKEY, IGClient.Authentication.CST, IGClient.Authentication.XST, IGClient.Settings.WebApiUrl);
+
+            if (IsOk(accounts))
+            {
+                M(enmMessageType.Info, "Name                          | Currency  | Balance        | Status");
+
+                foreach (var account in accounts.Response["accounts"])
+                {
+                    M(enmMessageType.Info, $"{account["accountName"].ToString(),-30}  {account["currency"].ToString(),-10}  {account["balance"]["balance"].ToString(),-15}  {account["status"].ToString(),-30}");
                 }
             }
         }

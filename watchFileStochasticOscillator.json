@@ -42,8 +42,7 @@
           "key": "std30",
           "name": "StochasticOscillator",
           "datatype": "double6",
-          "value": "std30,0;offer,0>-5",
-          "unit": "ticks"
+          "value": "std30,0;offer,0>-5"
         },
         {
           "key": "std60",

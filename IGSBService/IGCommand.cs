@@ -93,6 +93,16 @@ namespace IGSB
             return task.Result;
         }
 
+        static public IGResponse<JObject> Accounts(string apiKey, string cst, string xst, string sourceUrl)
+        {
+            var url = $"{sourceUrl}/accounts";
+            var version = "1";
+
+            var connect = new IGRestService();
+            var task = Task.Run(async () => await connect.RestfulService<JObject>(apiKey, cst, xst, version, url, enmMethod.GET, null));
+            return task.Result;
+        }
+
         static public IGResponse<JObject> GetDetails(string apiKey, string cst, string xst, string sourceUrl, string epic)
         {
             var url = $"{sourceUrl}/markets/{epic}";
