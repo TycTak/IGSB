@@ -117,43 +117,70 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CONTINUOUS_DISPLAY" xml:space="preserve">
-    <value>continuous display mode</value>
+  <data name="CHECK_PASSWORD" xml:space="preserve">
+    <value>Info;Checking password strength</value>
+  </data>
+  <data name="CONTINUOUS_DATASET" xml:space="preserve">
+    <value>Info;DATASET, continuous display mode, filtered on [{0}] &gt;&gt;</value>
+  </data>
+  <data name="CONTINUOUS_PREDICTION" xml:space="preserve">
+    <value>Info;PREDICTION, continuous display mode, filtered on [{0}] &gt;&gt;&gt;</value>
+  </data>
+  <data name="CONTINUOUS_SUBSCRIPTION" xml:space="preserve">
+    <value>Info;SUBSCRIPTION, continuous display mode, filtered on [{0}] &gt;</value>
   </data>
   <data name="DATASET_EMPTIED" xml:space="preserve">
-    <value>INFO;Dataset emptied</value>
+    <value>Info;Dataset emptied</value>
   </data>
-  <data name="FILTERED_ON" xml:space="preserve">
-    <value>filtered on </value>
+  <data name="HELP" xml:space="preserve">
+    <value>Info;Type 'help' or '/?' for available commands</value>
   </data>
   <data name="INVALID_PARAMETERS" xml:space="preserve">
-    <value>ERROR;Invalid parameters</value>
+    <value>Error;Invalid parameters</value>
+  </data>
+  <data name="MISSING_ARGS" xml:space="preserve">
+    <value>Error;IGSB.Program ERROR: Missing some or all command line arguments\nss = Map to source key in settings file (mandatory i.e. Demo, Live), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)</value>
   </data>
   <data name="NEED_TO_RESTART" xml:space="preserve">
-    <value>ERROR;Data capture is currently on pause, you need to 'begin' first</value>
+    <value>Error;Data capture is currently on pause, you need to 'begin' first</value>
+  </data>
+  <data name="NO_AUTHENTICATION" xml:space="preserve">
+    <value>Info;Unable to authenticate and start</value>
   </data>
   <data name="NO_DATASET" xml:space="preserve">
-    <value>ERROR;No dataset found</value>
+    <value>Error;No dataset found</value>
   </data>
   <data name="NO_LOGFILE" xml:space="preserve">
-    <value>ERROR;No log file found</value>
+    <value>Error;No log file found</value>
   </data>
   <data name="NO_MODEL" xml:space="preserve">
-    <value>ERROR;No model found</value>
+    <value>Error;No model found</value>
   </data>
   <data name="NO_MODEL_FOUND" xml:space="preserve">
-    <value>ERROR;No model found or cannot overwrite existing model</value>
+    <value>Error;No model found or cannot overwrite existing model</value>
   </data>
   <data name="NO_SCHEMA" xml:space="preserve">
-    <value>ERROR;Schema not found</value>
+    <value>Error;Schema not found</value>
   </data>
   <data name="NO_SCHEMA_FOUND" xml:space="preserve">
-    <value>ERROR;No schema found or cannot overwrite existing dataset</value>
+    <value>Error;No schema found or cannot overwrite existing dataset</value>
   </data>
-  <data name="SUBSCRIPTION" xml:space="preserve">
-    <value>INFO;SUBSCRIPTION</value>
+  <data name="PARAMETERS_OK" xml:space="preserve">
+    <value>Info;Settings parameters ok</value>
+  </data>
+  <data name="PASSWORD_FAILED" xml:space="preserve">
+    <value>Error;Password failed</value>
+  </data>
+  <data name="RELOAD_WATCH" xml:space="preserve">
+    <value>Error;You must reload watch file to see changes</value>
+  </data>
+  <data name="START" xml:space="preserve">
+    <value>Info;Type 'begin' or '/bc' to begin collecting data</value>
   </data>
   <data name="UNKNOWN" xml:space="preserve">
-    <value>ERROR;Unknown command, /? for help</value>
+    <value>Error;Unknown command, /? for help</value>
+  </data>
+  <data name="WEAK_PASSWORD" xml:space="preserve">
+    <value>Error;A weak password has been supplied</value>
   </data>
 </root>

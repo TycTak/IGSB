@@ -109,7 +109,7 @@ namespace IGSB
 
             if (args.Length > 0 && args[0].StartsWith("/") && args[0].Length > 2)
             {
-                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac]";
+                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac][/dt]";
 
                 if (!cmds.Contains(args[0]))
                 {
@@ -127,6 +127,10 @@ namespace IGSB
             switch (cmdArgs[0].ToLower())
             {
                 case "":
+                    break;
+                case "/dt":
+                case "date":
+                    M(enmMessageType.Info, $"{DateTime.Now.ToString():s}");
                     break;
                 case "/?":
                 case "help":
@@ -195,11 +199,10 @@ namespace IGSB
                         if (Validate("", cmdArgs))
                         {
                             IGClient.StreamDisplay = enmContinuousDisplay.Subscription;
-                            R($"<SUBSCRIPTION>, <CONTINUOUS_DISPLAY>{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", <FILTERED_ON>[{IGClient.Filter}]")} >");
+                            R("CONTINUOUS_SUBSCRIPTION", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
                         }
                     }
-                    else
-                        R("NEED_TO_RESTART");
+                    else R("NEED_TO_RESTART");
                     break;
                 case ">>":
                     if (!IGClient.Pause)
@@ -212,8 +215,9 @@ namespace IGSB
                             {
                                 var includeAllColumns = (cmdArgs[2] == "-a");
 
+                                IGClient.SchemaName = schema.SchemaName;
                                 IGClient.StreamDisplay = (includeAllColumns ? enmContinuousDisplay.DatasetAllColumns : enmContinuousDisplay.Dataset);
-                                M(enmMessageType.Info, $"DATASET, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", filtered on [{IGClient.Filter}]")} >>");
+                                R("CONTINUOUS_DATASET", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
                                 M(enmMessageType.Info, GetHeader(schema, includeAllColumns));
                             }
                             else R("NO_SCHEMA");
@@ -232,7 +236,7 @@ namespace IGSB
                             if (schema != null)
                             {
                                 IGClient.StreamDisplay = enmContinuousDisplay.Prediction;
-                                M(enmMessageType.Info, $"PREDICTION, continuous display mode{(string.IsNullOrEmpty(IGClient.Filter) ? "" : $", filtered on [{IGClient.Filter}]")} >>>");
+                                R("CONTINUOUS_PREDICTION", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
                                 M(enmMessageType.Info, GetHeader(schema, false, true));
                             }
                             else R("NO_SCHEMA");
@@ -327,7 +331,6 @@ namespace IGSB
                         {
                             case "s":
                             case "set":
-                                //var isReload = (cmdArgs[2] == "-r");
                                 if (Validate("MS;MS;MS;O~^-r$", cmdArgs)) SetAlias(IGClient.WatchFileName, $"{cmdArgs[2]}", $"{cmdArgs[3]}");
                                 break;
                             default:
@@ -342,8 +345,8 @@ namespace IGSB
                     break;
                 case "/t":
                 case "train":
-                    if (Validate("MS;MS;OS", cmdArgs))
-                        IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3]);
+                    if (Validate("MS;MS;MS;OS", cmdArgs))
+                        IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3], cmdArgs[4]);
                     else
                     {
                         switch (cmdArgs[1].ToLower())
@@ -499,15 +502,15 @@ namespace IGSB
                         }
                         else
                         {
-                            M(enmMessageType.Info, "Settings parameters seem ok");
+                            R("PARAMETERS_OK");
                             retval = (GetSession(sourceUrl, identifier, sourcePassword, apikey) && InitialiseLSC() && InitialiseWEB());
                         }
                     }
                     else retval = false;
                 }
-                else M(enmMessageType.Error, "Password has failed");
+                else R("PASSWORD_FAILED");
             }
-            else M(enmMessageType.Error, "A weak password has been supplied");
+            else R("WEAK_PASSWORD");
 
             return retval;
         }
@@ -516,7 +519,7 @@ namespace IGSB
         {
             int score = 0;
 
-            M(enmMessageType.Info, "Checking password strength");
+            R("CHECK_PASSWORD");
 
             if (password.Length > 4)
                 score++;
@@ -816,19 +819,22 @@ namespace IGSB
             var fields = string.Empty;
             var fm = string.Empty;
             var co = string.Empty;
+            var schemaNames = string.Empty;
 
-            foreach (var schema in IGClient.WatchFile.Schemas)
+            for (var i = 0; i < IGClient.WatchFile.Schemas.Count; i++)
             {
+                var schema = IGClient.WatchFile.Schemas[i];
                 var formulae = schema.SchemaInstruments.FindAll(x => x.Type == WatchFile.SchemaInstrument.enmType.formula);
+                schemaNames += (string.IsNullOrEmpty(schemaNames) ? $"#{i}_{schema.SchemaName}" : $", #{i}_{schema.SchemaName}") + (schema.IsActive ? "_A" : "_I");
 
                 foreach (var formula in formulae)
                 {
-                    fm += (!fm.Contains(formula.Name) ? (string.IsNullOrEmpty(fm) ? formula.Name : $", {formula.Name}") : "");
+                    fm += (!fm.Contains(formula.Name) ? (string.IsNullOrEmpty(fm) ? $"#{i}_{formula.Name}" : $", #{i}_{formula.Name}") : "");
                 }
 
                 foreach (var column in schema.SchemaInstruments)
                 {
-                    co += (string.IsNullOrEmpty(co) ? column.Key : $", {column.Key}");
+                    co += (string.IsNullOrEmpty(co) ? $"#{i}_{column.Key}" : $", #{i}_{column.Key}");
                     co += (column.IsColumn ? "" : "^");
                 }
             }
@@ -838,15 +844,16 @@ namespace IGSB
                 var subscriber = IGClient.LSC.Subscriptions[i];
                 foreach (var item in subscriber.Items)
                 {
-                    items += (string.IsNullOrEmpty(items) ? $"#{i}-{item}" : $", #{i}-{item}");
+                    items += (string.IsNullOrEmpty(items) ? $"{item}" : $", {item}");
                 }
 
                 foreach (var field in subscriber.Fields)
                 {
-                    fields += (string.IsNullOrEmpty(fields) ? $"#{i}-{field}" : $", #{i}-{field}");
+                    fields += (string.IsNullOrEmpty(fields) ? $"{field}" : $", {field}");
                 }
             }
 
+            M(enmMessageType.Info, "Schema Names: " + schemaNames);
             M(enmMessageType.Info, $"Columns: {co}");
             fm = (string.IsNullOrEmpty(fm) ? "-" : fm);
             M(enmMessageType.Info, $"Formulae: {fm}");
@@ -1047,6 +1054,7 @@ namespace IGSB
 
         public void Help()
         {
+            M(enmMessageType.Info, "date = Todays date (/dt)"); 
             M(enmMessageType.Info, "closeall = Close ALL open positions (/ca)");
             M(enmMessageType.Info, "close <dealId> = Close a specific position using its dealId (/cd)");
             M(enmMessageType.Info, "model load <model> = Load specific model (/ml)");
@@ -1058,7 +1066,7 @@ namespace IGSB
             M(enmMessageType.Info, "model save <model> = Save current model to specific model name (/ms)");
             M(enmMessageType.Info, "model = Lists all models (/m)");
             M(enmMessageType.Warn, "train info <dataset> = Display last training results for dataset (/ti)");
-            M(enmMessageType.Info, "train <dataset> <predict> [columns|-c] = Train model from combinations in dataset to predict a specific column, -c uses all columns in dataset only (/t)");
+            M(enmMessageType.Info, "train <dataset> <predict> <predictrange> [columns|-c] = Train model from combinations in dataset to predict a specific column, -c uses all columns in dataset only (/t)");
             M(enmMessageType.Info, "eval <dataset> = Evaluate and check your predictions using current model and specific dataset (/e)");
             M(enmMessageType.Info, "begin = Begin collection of data (/bc)");
             M(enmMessageType.Info, "end = End collection of data (/ec)");
@@ -1091,7 +1099,6 @@ namespace IGSB
             M(enmMessageType.Info, "passwd <existingpassword> <newpassword> = Change password for settings and source (/p)");
             M(enmMessageType.Info, "exit = Exit application (/x)");
             M(enmMessageType.Info, "alias = List of aliases (/a)");
-
             M(enmMessageType.Info, "alias set <alias> <value> -r = Change a value for an alias in the current watch file, -r specifies that you reload the watch file (/as)");
             M(enmMessageType.Info, "log = List all log files (/l)");
             M(enmMessageType.Info, "log type <lines> <logfile> = Type last specified number of lines (max 250) of specified log file (/lt)");
@@ -1099,6 +1106,7 @@ namespace IGSB
             M(enmMessageType.Info, "log copy <logfile> <newlogfile> = Copy a specific log file (/ld)");
             M(enmMessageType.Info, "log rename <logfile> <newlogfile> = Rename a specific log file (/lr)");
             M(enmMessageType.Info, "log info [<logfile|wildcards>] = Get additional information for log files (/li)");
+            M(enmMessageType.Info, "merge <dataset> <schema> <newdataset> = Merge existing dataset with schema to product new dataset (/m)");
         }
 
         public void InfoDataSet(string schema)
@@ -1445,6 +1453,8 @@ namespace IGSB
             {
                 watchFileJson.WriteTo(writer);
             }
+
+            R("RELOAD_WATCH");
         }
     }
 }

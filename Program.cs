@@ -22,7 +22,7 @@ namespace IGSB
             try
             {
                 var parsedArgs = GetArgs(args);
-                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Message(IGClient.enmMessageType.Exit, "IGSB.Program ERROR: Missing some or all command line arguments\nss = Map to source key in settings file (mandatory i.e. Demo, Live), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)");
+                if (!parsedArgs.Exists(x => x.Key == "ss") || !parsedArgs.Exists(x => x.Key == "wf")) Log.Response("MISSING_ARGS");
 
                 var watchFile = parsedArgs.Single(x => x.Key == "wf").Value;
                 var sourceKey = parsedArgs.Single(x => x.Key == "ss").Value;
@@ -34,11 +34,11 @@ namespace IGSB
                 IGClient.Initialise(Log.Message, Log.KeyPressed, Log.Beep, Log.Response, Log.ConfirmText, Log.ConfirmChar);
 
                 if (!IGClient.Authenticate(settingsFile, sourceKey, watchFile, appPassword))
-                    Log.Message(IGClient.enmMessageType.Exit, $"Unable to authenticate and start");
+                    Log.Response("NO_AUTHENTICATION");
                 else
                 {
-                    Log.Message(enmMessageType.Info, "Type 'begin' or '/bc' to begin collecting data");
-                    Log.Message(enmMessageType.Info, "Type 'help' or '/?' for available commands");
+                    Log.Response("START");
+                    Log.Response("HELP");
 
                     var commands = new Commands();
 

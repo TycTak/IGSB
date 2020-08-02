@@ -1,10 +1,6 @@
-﻿using Akka.Util.Internal;
-using Google.Protobuf.WellKnownTypes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Cryptography.X509Certificates;
 using static IGSB.BaseCodeLibrary;
 using static IGSB.WatchFile;
 using static IGSB.WatchFile.SchemaInstrument;

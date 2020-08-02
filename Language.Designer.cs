@@ -61,16 +61,43 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to continuous display mode.
+        ///   Looks up a localized string similar to Info;Checking password strength.
         /// </summary>
-        internal static string CONTINUOUS_DISPLAY {
+        internal static string CHECK_PASSWORD {
             get {
-                return ResourceManager.GetString("CONTINUOUS_DISPLAY", resourceCulture);
+                return ResourceManager.GetString("CHECK_PASSWORD", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to INFO;Dataset emptied.
+        ///   Looks up a localized string similar to Info;DATASET, continuous display mode, filtered on [{0}] &gt;&gt;.
+        /// </summary>
+        internal static string CONTINUOUS_DATASET {
+            get {
+                return ResourceManager.GetString("CONTINUOUS_DATASET", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;PREDICTION, continuous display mode, filtered on [{0}] &gt;&gt;&gt;.
+        /// </summary>
+        internal static string CONTINUOUS_PREDICTION {
+            get {
+                return ResourceManager.GetString("CONTINUOUS_PREDICTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;SUBSCRIPTION, continuous display mode, filtered on [{0}] &gt;.
+        /// </summary>
+        internal static string CONTINUOUS_SUBSCRIPTION {
+            get {
+                return ResourceManager.GetString("CONTINUOUS_SUBSCRIPTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Dataset emptied.
         /// </summary>
         internal static string DATASET_EMPTIED {
             get {
@@ -79,16 +106,16 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to filtered on .
+        ///   Looks up a localized string similar to Info;Type &apos;help&apos; or &apos;/?&apos; for available commands.
         /// </summary>
-        internal static string FILTERED_ON {
+        internal static string HELP {
             get {
-                return ResourceManager.GetString("FILTERED_ON", resourceCulture);
+                return ResourceManager.GetString("HELP", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;Invalid parameters.
+        ///   Looks up a localized string similar to Error;Invalid parameters.
         /// </summary>
         internal static string INVALID_PARAMETERS {
             get {
@@ -97,7 +124,16 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;Data capture is currently on pause, you need to &apos;begin&apos; first.
+        ///   Looks up a localized string similar to Error;IGSB.Program ERROR: Missing some or all command line arguments\nss = Map to source key in settings file (mandatory i.e. Demo, Live), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied).
+        /// </summary>
+        internal static string MISSING_ARGS {
+            get {
+                return ResourceManager.GetString("MISSING_ARGS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Data capture is currently on pause, you need to &apos;begin&apos; first.
         /// </summary>
         internal static string NEED_TO_RESTART {
             get {
@@ -106,7 +142,16 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;No dataset found.
+        ///   Looks up a localized string similar to Info;Unable to authenticate and start.
+        /// </summary>
+        internal static string NO_AUTHENTICATION {
+            get {
+                return ResourceManager.GetString("NO_AUTHENTICATION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;No dataset found.
         /// </summary>
         internal static string NO_DATASET {
             get {
@@ -115,7 +160,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;No log file found.
+        ///   Looks up a localized string similar to Error;No log file found.
         /// </summary>
         internal static string NO_LOGFILE {
             get {
@@ -124,7 +169,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;No model found.
+        ///   Looks up a localized string similar to Error;No model found.
         /// </summary>
         internal static string NO_MODEL {
             get {
@@ -133,7 +178,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;No model found or cannot overwrite existing model.
+        ///   Looks up a localized string similar to Error;No model found or cannot overwrite existing model.
         /// </summary>
         internal static string NO_MODEL_FOUND {
             get {
@@ -142,7 +187,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;Schema not found.
+        ///   Looks up a localized string similar to Error;Schema not found.
         /// </summary>
         internal static string NO_SCHEMA {
             get {
@@ -151,7 +196,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;No schema found or cannot overwrite existing dataset.
+        ///   Looks up a localized string similar to Error;No schema found or cannot overwrite existing dataset.
         /// </summary>
         internal static string NO_SCHEMA_FOUND {
             get {
@@ -160,20 +205,56 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to INFO;SUBSCRIPTION.
+        ///   Looks up a localized string similar to Info;Settings parameters ok.
         /// </summary>
-        internal static string SUBSCRIPTION {
+        internal static string PARAMETERS_OK {
             get {
-                return ResourceManager.GetString("SUBSCRIPTION", resourceCulture);
+                return ResourceManager.GetString("PARAMETERS_OK", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ERROR;Unknown command, /? for help.
+        ///   Looks up a localized string similar to Error;Password failed.
+        /// </summary>
+        internal static string PASSWORD_FAILED {
+            get {
+                return ResourceManager.GetString("PASSWORD_FAILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;You must reload watch file to see changes.
+        /// </summary>
+        internal static string RELOAD_WATCH {
+            get {
+                return ResourceManager.GetString("RELOAD_WATCH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Type &apos;begin&apos; or &apos;/bc&apos; to begin collecting data.
+        /// </summary>
+        internal static string START {
+            get {
+                return ResourceManager.GetString("START", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Unknown command, /? for help.
         /// </summary>
         internal static string UNKNOWN {
             get {
                 return ResourceManager.GetString("UNKNOWN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;A weak password has been supplied.
+        /// </summary>
+        internal static string WEAK_PASSWORD {
+            get {
+                return ResourceManager.GetString("WEAK_PASSWORD", resourceCulture);
             }
         }
     }

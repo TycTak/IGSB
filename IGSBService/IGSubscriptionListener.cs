@@ -49,15 +49,18 @@ namespace IGSB
                 {
                     for (var i = 0; i < watchList.Schemas.Count; i++)
                     {
-                        var pushed = watchList.Schemas[i].CodeLibrary.Push(itemUpdate.ItemName, changed.Key, changed.Value);
-
-                        if (pushed && IGClient.StreamDisplay == enmContinuousDisplay.Subscription)
+                        if (watchList.Schemas[i].IsActive)
                         {
-                            var message = String.Format("{0} {1}:{2}:{3}", watchList.Schemas[i].SchemaName, itemUpdate.ItemName, changed.Key, changed.Value);
+                            var pushed = watchList.Schemas[i].CodeLibrary.Push(itemUpdate.ItemName, changed.Key, changed.Value);
 
-                            if (string.IsNullOrEmpty(IGClient.Filter) || message.ToLower().Contains(IGClient.Filter.ToLower()))
+                            if (pushed && IGClient.StreamDisplay == enmContinuousDisplay.Subscription)
                             {
-                                M(enmMessageType.Info, message);
+                                var message = String.Format("{0} {1}:{2}:{3}", watchList.Schemas[i].SchemaName, itemUpdate.ItemName, changed.Key, changed.Value);
+
+                                if (string.IsNullOrEmpty(IGClient.Filter) || message.ToLower().Contains(IGClient.Filter.ToLower()))
+                                {
+                                    M(enmMessageType.Info, message);
+                                }
                             }
                         }
                     }

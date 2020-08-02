@@ -24,6 +24,8 @@ namespace IGSB
             public string SchemaId { get; set; }
 
             public string SchemaName { get; set; }
+
+            public bool IsActive { get; set; }
         }
 
         public class SchemaInstrument
@@ -136,6 +138,7 @@ namespace IGSB
 
                     watchSchema.SchemaId = Substitute(schema["schemaid"].ToString());
                     watchSchema.SchemaName = Substitute(schema["schemaname"].ToString());
+                    watchSchema.IsActive = (schema.ContainsKey("isactive") ? bool.Parse(schema["isactive"].ToString()) : false);
                     watchSchema.SchemaInstruments = new List<SchemaInstrument>();
 
                     watchSchema.CodeLibrary = (ICodeLibrary)Activator.CreateInstance(codeType);
@@ -257,7 +260,7 @@ namespace IGSB
                     };
 
                     watchSchema.SchemaInstruments.Add(completedInstrument);
-                    watchSchema.CodeLibrary.Initialise(watchSchema.Settings, watchSchema.SchemaInstruments);
+                    watchSchema.CodeLibrary.Initialise(watchSchema.SchemaName, watchSchema.Settings, watchSchema.SchemaInstruments);
 
                     Schemas.Add(watchSchema);
                 }

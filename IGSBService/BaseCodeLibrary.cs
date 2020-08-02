@@ -12,6 +12,7 @@ namespace IGSB
     {
         private Dictionary<string, List<SchemaInstrument>> instrumentKeyed;
         private Dictionary<string, string> settings;
+        private string schemaName;
         private List<SchemaInstrument> instruments;
         private List<SchemaInstrument> transformInstruments;
         private List<SchemaInstrument> schemaFormulas;
@@ -38,10 +39,10 @@ namespace IGSB
             public Dictionary<string, string> Values { get; set; }
         }
 
-        public void Initialise(Dictionary<string, string> settings, List<SchemaInstrument> instruments)
+        public void Initialise(string schemaName, Dictionary<string, string> settings, List<SchemaInstrument> instruments)
         {
             this.instruments = instruments;
-
+            this.schemaName = schemaName;
             this.settings = settings;
             this.schemaFormulas = instruments.FindAll(x => x.Type == SchemaInstrument.enmType.formula);
             this.columns = instruments.FindAll(x => x.Key != "completed" && !x.IsFuture);
@@ -180,9 +181,10 @@ namespace IGSB
                             }
                         }
 
-                        if (IGClient.StreamDisplay != enmContinuousDisplay.None && IGClient.StreamDisplay != enmContinuousDisplay.Subscription)
+                        if (IGClient.StreamDisplay != enmContinuousDisplay.None && IGClient.StreamDisplay != enmContinuousDisplay.Subscription && IGClient.SchemaName == schemaName)
                         {
                             var message = BaseCodeLibrary.GetDatasetRecord(currentRecord, instruments, (IGClient.StreamDisplay == enmContinuousDisplay.DatasetAllColumns), (IGClient.StreamDisplay == enmContinuousDisplay.Prediction));
+                            
                             if (string.IsNullOrEmpty(Filter) || message.ToLower().Contains(Filter.ToLower()))
                             {
                                 M(enmMessageType.Info, message);

@@ -1,5 +1,6 @@
 ﻿using NLog;
 using System;
+using System.Collections.Generic;
 using System.Resources;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -64,7 +65,7 @@ namespace IGSB
             return cki;
         }
 
-        static public string GetPassword(String message)
+        static public string GetPassword(string message)
         {
             var password = string.Empty;
 
@@ -122,46 +123,53 @@ namespace IGSB
             }
         }
 
-        //static public void Response(string code)
-        //{
-        //    var rm = new ResourceManager(typeof(Language));
-        //    var text = rm.GetString(code).Split(";");
-        //    var message = text[1] + $" ({code})";
-
-        //    var messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
-
-        //    Message(messageType, message);
-        //}
-
-        static public void Response(string message)
+        static public void Response(string code, List<string> args = null)
         {
             var rm = new ResourceManager(typeof(Language));
-
-            var pattern = @"\<(.*?)\>";
-            var matches = Regex.Matches(message, pattern);
-
-            if (matches.Count == 0)
-                message = rm.GetString(message);
-            else
-            {
-                foreach (var key in matches)
-                {
-                    var code = key.ToString().Substring(1, key.ToString().Length - 2);
-                    message = message.Replace($"<{code}>", rm.GetString(code));
-                }
-            }
+            var message = rm.GetString(code);
 
             var text = message.Split(";");
             enmMessageType messageType;
 
-            if (text.Length == 2) {
+            if (args != null)
+                message = string.Format(text[1], args.ToArray());
+            else
                 message = text[1];
-                messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
-            } else
-                messageType = enmMessageType.Info;
+
+            messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0]); //
 
             Message(messageType, message);
         }
+
+        //static public void Response(string message)
+        //{
+        //    var rm = new ResourceManager(typeof(Language));
+
+        //    var pattern = @"\<(.*?)\>";
+        //    var matches = Regex.Matches(message, pattern);
+
+        //    if (matches.Count == 0)
+        //        message = rm.GetString(message);
+        //    else
+        //    {
+        //        foreach (var key in matches)
+        //        {
+        //            var code = key.ToString().Substring(1, key.ToString().Length - 2);
+        //            message = message.Replace($"<{code}>", rm.GetString(code));
+        //        }
+        //    }
+
+        //    var text = message.Split(";");
+        //    enmMessageType messageType;
+
+        //    if (text.Length == 2) {
+        //        message = text[1];
+        //        messageType = (enmMessageType)Enum.Parse(typeof(enmMessageType), text[0].Substring(0, 1).ToUpper() + text[0].ToLower().Substring(1));
+        //    } else
+        //        messageType = enmMessageType.info;
+
+        //    Message(messageType, message);
+        //}
 
         static public bool ConfirmChar(string message, char accept)
         {

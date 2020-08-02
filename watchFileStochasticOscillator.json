@@ -4,30 +4,59 @@
   "currency": "GBP",
   "alias": [
     {
-      "name": "IX.D.FTSE.DAILY.IP",
+      "name": "CS.D.BITCOIN.TODAY.IP",
       "alias": "epic"
     },
     {
-      "name": "ftse",
-      "alias": "schemaname"
-    },
-    {
-      "name": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
-      "alias": "schemaid"
-    },
-    {
-      "name": "normalise,5500,7000",
+      "name": "normalise,20000,30000",
       "alias": "epictransform"
-    },
-    {
-      "name": "normalise,0,100",
-      "alias": "rsitransform"
     }
   ],
   "schemas": [
     {
-      "schemaid": "{schemaid}",
-      "schemaname": "{schemaname}",
+      "isactive": "true",
+      "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "schemaname": "oscillator",
+      "instruments": [
+        {
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{epic}",
+          "datatype": "double6",
+          "transform": "{epictransform}",
+          "value": "OFFER"
+        },
+        {
+          "key": "sto90",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "sto90,0;offer,0>-90"
+        },
+        {
+          "key": "sto120",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "sto120,0;offer,0>-120"
+        },
+        {
+          "key": "sto150",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "sto150,0;offer,0>-150"
+        },
+        {
+          "key": "sto180",
+          "name": "StochasticOscillator",
+          "datatype": "double6",
+          "value": "sto180,0;offer,0>-180"
+        }
+      ]
+    },
+    {
+      "isactive": "false",
+      "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE31",
+      "schemaname": "deviation",
       "instruments": [
         {
           "isnewrecord": "true",
@@ -40,19 +69,20 @@
         },
         {
           "key": "std30",
-          "name": "StochasticOscillator",
+          "name": "StandardDeviation",
           "datatype": "double6",
-          "value": "std30,0;offer,0>-5"
+          "value": "std30,0;offer,0>-5",
+          "unit": "ticks"
         },
         {
           "key": "std60",
-          "name": "StochasticOscillator",
+          "name": "StandardDeviation",
           "datatype": "double6",
           "value": "std60,0;offer,0>-60"
         },
         {
           "key": "std90",
-          "name": "StochasticOscillator",
+          "name": "StandardDeviation",
           "datatype": "double6",
           "value": "std90,0;offer,0>-90"
         }

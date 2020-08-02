@@ -26,8 +26,9 @@
   ],
   "schemas": [
     {
+      "isactive": "true",
       "schemaid": "{schemaid}",
-      "schemaname": "{schemaname}",
+      "schemaname": "deviation",
       "instruments": [
         {
           "isnewrecord": "true",

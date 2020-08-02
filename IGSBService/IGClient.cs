@@ -52,7 +52,7 @@ namespace IGSB
         static public int C { get; set; }
 
         public delegate void Message(enmMessageType messageType, string message);
-        public delegate void Response(string code);
+        public delegate void Response(string code, List<string> args = null);
         public delegate bool ConfirmText(string message, string accept);
         public delegate bool ConfirmChar(string message, char accept);
         public delegate bool BreakProcess();
@@ -100,6 +100,8 @@ namespace IGSB
         static public DateTime Started { get; set; }
 
         static public string Filter { get; set; } = default(string);
+
+        static public string SchemaName { get; set; } = default(string);
 
         static public enmContinuousDisplay StreamDisplay { get; set; } = enmContinuousDisplay.None;
 

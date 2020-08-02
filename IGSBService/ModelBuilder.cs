@@ -277,7 +277,7 @@ namespace ConsoleApp6ML.ConsoleApp
             return predEngine;
         }
 
-        public bool TrainModel(string dataset, string predictColumn, string features)
+        public bool TrainModel(string dataset, string predictColumn, string predictArray, string features)
         {
             var retval = false;
 
