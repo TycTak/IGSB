@@ -52,7 +52,7 @@ namespace IGSB
                 @long
             }
 
-            public string Raw { get; set; }
+            //public string Raw { get; set; }
 
             public bool IsNewRecordEvent { get; set; }
 
@@ -175,7 +175,7 @@ namespace IGSB
                         if (isActive)
                         {
                             var schemaInstrument = new SchemaInstrument();
-                            schemaInstrument.Raw = instrument.ToString();
+                            //schemaInstrument.Raw = instrument.ToString();
                             schemaInstrument.IsNewRecordEvent = (instrument.ContainsKey("isnewrecord") ? bool.Parse(instrument["isnewrecord"].ToString()) : false);
                             schemaInstrument.IsColumn = (instrument.ContainsKey("iscolumn") ? bool.Parse(instrument["iscolumn"].ToString()) : true);
                             schemaInstrument.IsPredict = (instrument.ContainsKey("ispredict") ? bool.Parse(instrument["ispredict"].ToString()) : true);

@@ -61,6 +61,15 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Info;Schema is active.
+        /// </summary>
+        internal static string ACTIVATE_SCHEMA {
+            get {
+                return ResourceManager.GetString("ACTIVATE_SCHEMA", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Info;Checking password strength.
         /// </summary>
         internal static string CHECK_PASSWORD {
@@ -111,6 +120,15 @@ namespace IGSB {
         internal static string HELP {
             get {
                 return ResourceManager.GetString("HELP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Schema has been made not active.
+        /// </summary>
+        internal static string INACTIVATE_SCHEMA {
+            get {
+                return ResourceManager.GetString("INACTIVATE_SCHEMA", resourceCulture);
             }
         }
         

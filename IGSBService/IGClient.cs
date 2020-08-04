@@ -101,7 +101,7 @@ namespace IGSB
 
         static public string Filter { get; set; } = default(string);
 
-        static public string SchemaName { get; set; } = default(string);
+        static public string SchemaFilterName { get; set; } = default(string);
 
         static public enmContinuousDisplay StreamDisplay { get; set; } = enmContinuousDisplay.None;
 

@@ -73,6 +73,7 @@ namespace ConsoleApp6ML.ConsoleApp
 
             using (var file = new System.IO.StreamReader(datasetFileName))
             {
+                file.ReadLine();
                 var header = file.ReadLine();
                 headerSplit = header.Split(',');
             }
@@ -91,6 +92,11 @@ namespace ConsoleApp6ML.ConsoleApp
             }
 
             return columns;
+        }
+
+        private double ReverseTransform(double min, double max, double transformed)
+        {
+            return ((max - min) * transformed) + min;
         }
 
         private ITransformer GetModel(string[] columns, out IEstimator<ITransformer> trainingPipeline)
@@ -277,7 +283,7 @@ namespace ConsoleApp6ML.ConsoleApp
             return predEngine;
         }
 
-        public bool TrainModel(string dataset, string predictColumn, string predictArray, string features)
+        public bool TrainModel(string dataset, string predictColumn, string features)
         {
             var retval = false;
 
@@ -295,10 +301,10 @@ namespace ConsoleApp6ML.ConsoleApp
 
                     List<string> columns = GetColumns(datasetFileName, predictColumn);
 
-                    var dataColumns = new List<TextLoader.Column>();
+                    var dataColumns2 = new List<TextLoader.Column>();
                     for (var i = 0; i < columns.Count; i++)
                     {
-                        dataColumns.Add(new TextLoader.Column(columns[i].Split(";")[0], DataKind.Single, i));
+                        dataColumns2.Add(new TextLoader.Column(columns[i].Split(";")[0], DataKind.Single, i));
                     }
 
                     M(enmMessageType.Trace, $"Loaded dataset [{dataset}]");
@@ -336,13 +342,31 @@ namespace ConsoleApp6ML.ConsoleApp
                         processingColumns.Add(tempColumns.ToArray());
                     }
 
-                    trainingDataView = mlContext.Data.LoadFromTextFile(
-                                    path: datasetFileName,
-                                    hasHeader: true,
-                                    columns: dataColumns.ToArray(),
-                                    separatorChar: ',',
-                                    allowQuoting: true,
-                                    allowSparse: false);
+                    //https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.dataoperationscatalog.loadfromenumerable?view=ml-dotnet
+                    //https://docs.microsoft.com/en-us/dotnet/machine-learning/how-does-mldotnet-work
+
+                    var lines = GetLines(datasetFileName);
+
+                    //trainingDataView = mlContext.Data.LoadFromTextFile(
+                    //                path: datasetFileName,
+                    //                hasHeader: true,
+                    //                columns: dataColumns.ToArray(),
+                    //                separatorChar: ',',
+                    //                allowQuoting: true,
+                    //                allowSparse: false);
+
+                    var schemaDef = SchemaDefinition.Create(typeof(Data));
+
+                    //var schemaDef = SchemaDefinition.Create(typeof(double));
+
+                    //schemaDef["Features"].ColumnType = new VectorType(NumberType.R4, numberOfFeatures);
+                    //schemaDef.Add(new SchemaDefinition.Column() { ColumnName = "F0" });
+
+                    //public string MemberName { get; }
+                    //public string ColumnName { get; set; }
+                    //public DataViewType ColumnType { get; set; }
+
+                    trainingDataView = mlContext.Data.LoadFromEnumerable(lines, schemaDef);
 
                     if (processingColumns.Count > 1) M(enmMessageType.Trace, $"Combinations = {processingColumns.Count}");
 
@@ -579,6 +603,213 @@ namespace ConsoleApp6ML.ConsoleApp
             return diffTimeSpan;
         }
 
+        //public void RunModel(string dataset)
+        //{
+        //    if (Model != null)
+        //    {
+        //        var datasetFileName = $@".\{dataset}.csv";
+
+        //        if (File.Exists(datasetFileName))
+        //        {
+
+        //        }
+        //        else M(enmMessageType.Error, $"ERROR, no dataset found");
+        //    }
+        //    else M(enmMessageType.Error, $"ERROR, no model found");
+        //}
+
+        private void GetDataSet(string datasetFileName, out List<TextLoader.Column> dataColumns, out List<ValueInstrument> lines)
+        {
+            List<string> columns = GetColumns(datasetFileName, PredictColumn);
+
+            dataColumns = new List<TextLoader.Column>();
+            for (var i = 0; i < columns.Count; i++)
+            {
+                dataColumns.Add(new TextLoader.Column(columns[i].Split(";")[0], DataKind.Single, i));
+            }
+
+            lines = new List<ValueInstrument>();
+            using (var file = new System.IO.StreamReader(datasetFileName))
+            {
+                var line = file.ReadLine();
+                if (!string.IsNullOrEmpty(line))
+                {
+                    line = file.ReadLine();
+                    line = file.ReadLine();
+                }
+
+                while (!string.IsNullOrEmpty(line))
+                {
+                    var o = new ValueInstrument();
+                    o.Values = new Dictionary<string, string>();
+                    var values = line.Split(",");
+
+                    for (var i = 0; i < columns.Count; i++)
+                    {
+                        var column = columns[i];
+                        if ((CurrentMetric == null) || CurrentMetric.Columns.Contains(column))
+                        {
+                            var splitColumn = column.Split(";");
+                            o.Values.Add(splitColumn[1], values[i]);
+                        }
+                    }
+
+                    if (columns.Contains($"Label;{PredictColumn}"))
+                    {
+                        o.Values.Add(PredictColumn, values[columns.IndexOf($"Label;{PredictColumn}")]);
+                    }
+
+                    lines.Add(o);
+
+                    line = file.ReadLine();
+                };
+            }
+        }
+
+        private List<Data> GetLines(string datasetFileName)
+        {
+            //List<string> columns = GetColumns(datasetFileName, PredictColumn);
+            //dataColumns = new List<TextLoader.Column>();
+            //for (var i = 0; i < columns.Count; i++)
+            //{
+            //    dataColumns.Add(new TextLoader.Column(columns[i].Split(";")[0], DataKind.Single, i));
+            //}
+
+            var lines = new List<Data>();
+            using (var file = new System.IO.StreamReader(datasetFileName))
+            {
+                var line = file.ReadLine();
+                line = file.ReadLine();
+                if (!string.IsNullOrEmpty(line))
+                {
+                    line = file.ReadLine();
+
+                    while (!string.IsNullOrEmpty(line))
+                    {
+                        var data = new Data();
+                        //var values = new List<string>();
+                        var valueSplit = line.Split(",");
+                        var dataType = typeof(Data);
+
+                        for (var i = 0; i < valueSplit.Length; i++)
+                        {
+                            dataType.GetProperty("F" + i).SetValue(data, Convert.ToSingle(valueSplit[i]));
+                        }
+
+                        //foreach (var v in valueSplit)
+                        //{
+                        //    values.Add(v);
+                        //}
+
+                        //for (var i = 0; i < columns.Count; i++)
+                        //{
+                        //    var column = columns[i];
+                        //    if ((CurrentMetric == null) || CurrentMetric.Columns.Contains(column))
+                        //    {
+                        //        var splitColumn = column.Split(";");
+                        //        o.Values.Add(splitColumn[1], values[i]);
+                        //    }
+                        //}
+
+                        //if (columns.Contains($"Label;{PredictColumn}"))
+                        //{
+                        //    o.Values.Add(PredictColumn, values[columns.IndexOf($"Label;{PredictColumn}")]);
+                        //}
+
+                        lines.Add(data);
+
+                        line = file.ReadLine();
+                    }
+                }
+            }
+
+            return lines;
+        }
+
+
+        public void RunModel(string dataset, int topPercent = 30)
+        {
+            if (Model != null)
+            {
+                var datasetFileName = $@".\{dataset}.csv";
+
+                if (File.Exists(datasetFileName))
+                {
+                    List<TextLoader.Column> dataColumns;
+                    List<ValueInstrument> lines;
+
+                    GetDataSet(datasetFileName, out dataColumns, out lines);
+
+                    M(enmMessageType.Info, $"Loaded dataset [{dataset}]");
+
+                    topPercent = (topPercent == 0 ? 70 : topPercent);
+                    var actionPoint = 1 - ((1 / 100d) * topPercent);
+                    var breakPoint = 1 - ((1 / 100d) * 50);
+
+                    var err = 0;
+                    var trn = 0;
+                    var msd = 0;
+
+                    var profit = 0d;
+                    var previousPrice = 0d;
+                    var action = "";
+                    var actionCount = 0;
+
+                    foreach (var record in lines)
+                    {
+                        var result = Predict(record);
+                        var temp = Convert.ToSingle(record.Values["signal"].ToString());
+
+                        if (result.Label < -actionPoint && (record.Values["signal"] != "-1"))
+                        {
+                            err += 1;
+                        }
+                        else if (result.Label > actionPoint && (record.Values["signal"] != "1"))
+                        {
+                            err += 1;
+                        }
+                        else if ((result.Label < -actionPoint || result.Label > actionPoint) && temp != 0)
+                        {
+                            if (result.Label < -actionPoint && string.IsNullOrEmpty(action))
+                            {
+                                action = "sell";
+                                previousPrice = Convert.ToDouble(record.Values["offer+"].ToString());
+                                actionCount++;
+                            }
+                            else if (result.Label > actionPoint && string.IsNullOrEmpty(action))
+                            {
+                                action = "buy";
+                                previousPrice = Convert.ToDouble(record.Values["offer+"].ToString());
+                                actionCount++;
+                            }
+                            else if (result.Label > -breakPoint && (action == "sell"))
+                            {
+                                action = "";
+                                profit = previousPrice - Convert.ToDouble(record.Values["offer+"].ToString());
+                                actionCount++;
+                            }
+                            else if (result.Label < breakPoint && (action == "buy"))
+                            {
+                                action = "";
+                                profit = Convert.ToDouble(record.Values["offer+"].ToString()) - previousPrice;
+                                actionCount++;
+                            }
+
+                            trn += 1;
+                        }
+                        else if (temp != 0)
+                        {
+                            msd += 1;
+                        }
+                    }
+
+                    M(enmMessageType.Trace, $"TOTAL: Actions: {actionCount}, Profit: {profit}");
+                }
+                else M(enmMessageType.Error, $"ERROR, no dataset found");
+            }
+            else M(enmMessageType.Error, $"ERROR, no model found");
+        }
+
         public void EvaluateModel(string dataset, int topPercent = 30)
         {
             if (Model != null)
@@ -587,46 +818,10 @@ namespace ConsoleApp6ML.ConsoleApp
 
                 if (File.Exists(datasetFileName))
                 {
-                    List<string> columns = GetColumns(datasetFileName, PredictColumn);
+                    List<TextLoader.Column> dataColumns;
+                    List<ValueInstrument> lines;
 
-                    var dataColumns = new List<TextLoader.Column>();
-                    for (var i = 0; i < columns.Count; i++)
-                    {
-                        dataColumns.Add(new TextLoader.Column(columns[i].Split(";")[0], DataKind.Single, i));
-                    }
-
-                    var lines = new List<ValueInstrument>();
-                    using (var file = new System.IO.StreamReader(datasetFileName))
-                    {
-                        var line = file.ReadLine();
-                        if (!string.IsNullOrEmpty(line)) line = file.ReadLine();
-
-                        while (!string.IsNullOrEmpty(line))
-                        {
-                            var o = new ValueInstrument();
-                            o.Values = new Dictionary<string, string>();
-                            var values = line.Split(",");
-
-                            for (var i = 0; i < columns.Count; i++)
-                            {
-                                var column = columns[i];
-                                if (CurrentMetric.Columns.Contains(column))
-                                {
-                                    var splitColumn = column.Split(";");
-                                    o.Values.Add(splitColumn[1], values[i]);
-                                }
-                            }
-
-                            if (columns.Contains($"Label;{PredictColumn}"))
-                            {
-                                o.Values.Add(PredictColumn, values[columns.IndexOf($"Label;{PredictColumn}")]);
-                            }
-
-                            lines.Add(o);
-
-                            line = file.ReadLine();
-                        };
-                    }
+                    GetDataSet(datasetFileName, out dataColumns, out lines);
 
                     M(enmMessageType.Info, $"Loaded dataset [{dataset}]");
 

@@ -101,28 +101,43 @@ namespace IGSB
             return retval;
         }
 
-        public bool CommandParse(string command)
+        private List<string> GetArgs(string command)
         {
-            var @continue = true;
-
             var args = command.Trim().Split(' ');
 
             if (args.Length > 0 && args[0].StartsWith("/") && args[0].Length > 2)
             {
-                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac][/dt]";
+                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac][/dt][/sc][/ru]";
 
-                if (!cmds.Contains(args[0]))
+                for (var i = args[0].Length; i >= 2; i--)
                 {
-                    var len = (args[0].Length - 1);
-                    var tmpArgs = new String[len + (args.Length - 1)];
-                    Array.Copy(args, 1, tmpArgs, len, args.Length - 1);
-                    tmpArgs[0] = args[0].Substring(0, 2);
-                    tmpArgs[1] = args[0].Substring(2, 1);
-                    args = tmpArgs;
+                    var check = args[0].Substring(0, i);
+                    if (cmds.Contains($"[{check}]") || i == 2)
+                    {
+                        var len = (args[0].Length - (check.Length - 1));
+                        var tmpArgs = new String[len + (args.Length - 1)];
+                        Array.Copy(args, 1, tmpArgs, len, args.Length - 1);
+                        tmpArgs[0] = args[0].Substring(0, check.Length);
+                        
+                        for(var x = 1; x < len; x++)
+                        {
+                            tmpArgs[x] = args[0].Substring(check.Length + x - 1, 1);
+                        }
+                        
+                        args = tmpArgs;
+                        break;
+                    }
                 }
             }
 
-            var cmdArgs = args.ToList<string>();
+            return args.ToList<string>();
+        }
+
+        public bool CommandParse(string command)
+        {
+            var @continue = true;
+
+            var cmdArgs = GetArgs(command);
 
             switch (cmdArgs[0].ToLower())
             {
@@ -215,7 +230,7 @@ namespace IGSB
                             {
                                 var includeAllColumns = (cmdArgs[2] == "-a");
 
-                                IGClient.SchemaName = schema.SchemaName;
+                                IGClient.SchemaFilterName = schema.SchemaName;
                                 IGClient.StreamDisplay = (includeAllColumns ? enmContinuousDisplay.DatasetAllColumns : enmContinuousDisplay.Dataset);
                                 R("CONTINUOUS_DATASET", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
                                 M(enmMessageType.Info, GetHeader(schema, includeAllColumns));
@@ -284,6 +299,30 @@ namespace IGSB
                 case "cls":
                     if (Validate("", cmdArgs)) Console.Clear();
                     break;
+                case "/sc":
+                case "schema":
+                    if (Validate("", cmdArgs, false))
+                    {
+                        Schema();
+                    }
+                    else
+                    {
+                        switch (cmdArgs[1].ToLower())
+                        {
+                            case "+":
+                            case "+a":
+                                if (Validate("MS;MS", cmdArgs)) SchemaActivate($"{cmdArgs[2]}", true);
+                                break;
+                            case "-":
+                            case "-a":
+                                if (Validate("MS;MS", cmdArgs)) SchemaActivate($"{cmdArgs[2]}", false);
+                                break;
+                            default:
+                                R("UNKNOWN");
+                                break;
+                        }
+                    }
+                    break;
                 case "/l":
                 case "log":
                     if (Validate("", cmdArgs, false))
@@ -345,8 +384,8 @@ namespace IGSB
                     break;
                 case "/t":
                 case "train":
-                    if (Validate("MS;MS;MS;OS", cmdArgs))
-                        IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3], cmdArgs[4]);
+                    if (Validate("MS;MS;OS", cmdArgs))
+                        IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3]);
                     else
                     {
                         switch (cmdArgs[1].ToLower())
@@ -360,6 +399,10 @@ namespace IGSB
                                 break;
                         }
                     }
+                    break;
+                case "/ru":
+                case "run":
+                    if (Validate("MS;OS", cmdArgs)) IGClient.ML.RunModel($"{cmdArgs[1]}");
                     break;
                 case "/m":
                 case "model":
@@ -955,6 +998,30 @@ namespace IGSB
             else R("NO_SCHEMA");
         }
 
+        public void Schema()
+        {
+            foreach (var schema in IGClient.WatchFile.Schemas)
+            {
+                M(enmMessageType.Info, $"{schema.SchemaName} active={schema.IsActive}");
+            }
+        }
+
+        public void SchemaActivate(string schema, bool activate)
+        {
+            var schemaObj = GetSchema(schema);
+
+            if (schemaObj != null)
+            {
+                schemaObj.IsActive = activate;
+
+                if (activate)
+                    R("ACTIVATE_SCHEMA");
+                else
+                    R("INACTIVATE_SCHEMA");
+            }
+            else R("NO_SCHEMA");
+        }
+
         public void Transactions(int days)
         {
             var fromDate = DateTime.Now;
@@ -1068,6 +1135,7 @@ namespace IGSB
             M(enmMessageType.Warn, "train info <dataset> = Display last training results for dataset (/ti)");
             M(enmMessageType.Info, "train <dataset> <predict> <predictrange> [columns|-c] = Train model from combinations in dataset to predict a specific column, -c uses all columns in dataset only (/t)");
             M(enmMessageType.Info, "eval <dataset> = Evaluate and check your predictions using current model and specific dataset (/e)");
+            M(enmMessageType.Info, "run <dataset> = Run through a simulated dataset using current model (/e)");
             M(enmMessageType.Info, "begin = Begin collection of data (/bc)");
             M(enmMessageType.Info, "end = End collection of data (/ec)");
             M(enmMessageType.Info, "info [<days>] = Display todays transactions or transaction for last number of days, max 100 (/i)");
@@ -1103,10 +1171,13 @@ namespace IGSB
             M(enmMessageType.Info, "log = List all log files (/l)");
             M(enmMessageType.Info, "log type <lines> <logfile> = Type last specified number of lines (max 250) of specified log file (/lt)");
             M(enmMessageType.Info, "log delete <logfile> = Delete a specific log file (/ld)");
-            M(enmMessageType.Info, "log copy <logfile> <newlogfile> = Copy a specific log file (/ld)");
+            M(enmMessageType.Info, "log copy <logfile> <newlogfile> = Copy a specific log file (/lc)");
             M(enmMessageType.Info, "log rename <logfile> <newlogfile> = Rename a specific log file (/lr)");
             M(enmMessageType.Info, "log info [<logfile|wildcards>] = Get additional information for log files (/li)");
             M(enmMessageType.Info, "merge <dataset> <schema> <newdataset> = Merge existing dataset with schema to product new dataset (/m)");
+            M(enmMessageType.Info, "schema = List all schemas and show current details (/sc)");
+            M(enmMessageType.Info, "schema +a <schema> = Activate a schema to allow it to capture incoming values (/sc+)");
+            M(enmMessageType.Info, "schema -a <schema> = InActivate a schema to stop it capturing incoming values (/sc-)");
         }
 
         public void InfoDataSet(string schema)
@@ -1121,17 +1192,21 @@ namespace IGSB
                 {
                     var info = new FileInfo(x);
                     var lines = File.ReadLines(x).Count();
-                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10} line{(lines > 1 ? "s" : " ")}   {info.CreationTimeUtc}");
+                    var heading = File.ReadLines(x).First();
+
+                    var columnCount = heading.Split(",").Length;
+
+                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10} line{(lines > 1 ? "s" : " ")}  {columnCount, 3} column{(columnCount > 1 ? "s" : " ")}   {info.CreationTimeUtc}");
                 }
             }
             else R("NO_DATASET");
         }
 
-        public void HeadingsDataSet(string schema)
+        public void HeadingsDataSet(string dataset)
         {
-            schema = (string.IsNullOrEmpty(schema) ? "*" : schema);
+            dataset = (string.IsNullOrEmpty(dataset) ? "*" : dataset);
 
-            var schemas = Directory.GetFiles(@".\", $"{schema}.csv");
+            var schemas = Directory.GetFiles(@".\", $"{dataset}.csv");
 
             if (schemas.Length > 0)
             {
@@ -1141,7 +1216,7 @@ namespace IGSB
                     var lines = File.ReadLines(x);
                     if (lines.Count() > 0)
                     {
-                        var split = lines.ToList()[0].Split(',');
+                        var split = lines.ToList()[1].Split(',');
                         foreach(var column in split)
                         {
                             M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4)} - {column}");
@@ -1152,9 +1227,9 @@ namespace IGSB
             else R("NO_DATASET");
         }
 
-        public void DeleteDataSet(string schema)
+        public void DeleteDataSet(string dataset)
         {
-            var schemas = Directory.GetFiles(@".\", $"{schema}.csv");
+            var schemas = Directory.GetFiles(@".\", $"{dataset}.csv");
 
             if (schemas.Length > 0)
             {
@@ -1168,22 +1243,22 @@ namespace IGSB
             else R("NO_DATASET");
         }
 
-        public void RenameDataSet(string schema, string newSchema)
+        public void RenameDataSet(string dataset, string newDataSet)
         {
-            if (File.Exists($@".\{schema}.csv") && !File.Exists($@".\{newSchema}.csv"))
+            if (File.Exists($@".\{dataset}.csv") && !File.Exists($@".\{newDataSet}.csv"))
             {
-                File.Move($@".\{schema}.csv", $@".\{newSchema}.csv");
-                M(enmMessageType.Info, $"Renamed dataset [{schema}] to [{newSchema}]");
+                File.Move($@".\{dataset}.csv", $@".\{newDataSet}.csv");
+                M(enmMessageType.Info, $"Renamed dataset [{dataset}] to [{newDataSet}]");
             }
             else R("NO_SCHEMA_FOUND");
         }
 
-        public void CopyDataSet(string schema, string newSchema)
+        public void CopyDataSet(string dataset, string newDataSet)
         {
-            if (File.Exists($@".\{schema}.csv") && !File.Exists($@".\{newSchema}.csv"))
+            if (File.Exists($@".\{dataset}.csv") && !File.Exists($@".\{newDataSet}.csv"))
             {
-                File.Copy($@".\{schema}.csv", $@".\{newSchema}.csv");
-                M(enmMessageType.Info, $"Copied dataset [{schema}] to [{newSchema}]");
+                File.Copy($@".\{dataset}.csv", $@".\{newDataSet}.csv");
+                M(enmMessageType.Info, $"Copied dataset [{dataset}] to [{newDataSet}]");
             }
             else R("NO_SCHEMA_FOUND");
         }
@@ -1224,12 +1299,12 @@ namespace IGSB
             return retval;
         }
 
-        public void SaveDataSet(string schema, bool noDateTimeNaming, bool includeAllColumns)
+        public void SaveDataSet(string dataset, bool noDateTimeNaming, bool includeAllColumns)
         {
             var alreadyPaused = IGClient.Pause;
-            var outputSchemaName = (noDateTimeNaming ? $"{schema}" : $"{schema}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}");
+            var outputSchemaName = (noDateTimeNaming ? $"{dataset}" : $"{dataset}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}");
 
-            var schemaObj = GetSchema(schema);
+            var schemaObj = GetSchema(dataset);
 
             if (schemaObj != null)
             {
@@ -1239,6 +1314,8 @@ namespace IGSB
 
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter($"{outputSchemaName}.csv"))
                 {
+                    string schemaString = JsonConvert.SerializeObject(schemaObj.SchemaInstruments);
+                    file.WriteLine(schemaString);
                     file.WriteLine(GetHeader(schemaObj, includeAllColumns));
 
                     foreach (var record in schemaObj.CodeLibrary.Values)
@@ -1253,7 +1330,7 @@ namespace IGSB
                         }
                     }
 
-                    M(enmMessageType.Info, $"Saved dataset schema [{schema}] to [{outputSchemaName}]");
+                    M(enmMessageType.Info, $"Saved dataset schema [{dataset}] to [{outputSchemaName}]");
                 }
 
                 IGClient.Pause = (alreadyPaused ? alreadyPaused : false);

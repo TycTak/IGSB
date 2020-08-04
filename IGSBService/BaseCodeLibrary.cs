@@ -181,7 +181,7 @@ namespace IGSB
                             }
                         }
 
-                        if (IGClient.StreamDisplay != enmContinuousDisplay.None && IGClient.StreamDisplay != enmContinuousDisplay.Subscription && IGClient.SchemaName == schemaName)
+                        if (IGClient.StreamDisplay != enmContinuousDisplay.None && IGClient.StreamDisplay != enmContinuousDisplay.Subscription && IGClient.SchemaFilterName == schemaName)
                         {
                             var message = BaseCodeLibrary.GetDatasetRecord(currentRecord, instruments, (IGClient.StreamDisplay == enmContinuousDisplay.DatasetAllColumns), (IGClient.StreamDisplay == enmContinuousDisplay.Prediction));
                             
