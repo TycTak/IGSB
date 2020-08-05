@@ -118,16 +118,22 @@ namespace IGSB
                         var tmpArgs = new String[len + (args.Length - 1)];
                         Array.Copy(args, 1, tmpArgs, len, args.Length - 1);
                         tmpArgs[0] = args[0].Substring(0, check.Length);
-                        
-                        for(var x = 1; x < len; x++)
+
+                        for (var x = 1; x < len; x++)
                         {
                             tmpArgs[x] = args[0].Substring(check.Length + x - 1, 1);
                         }
-                        
+
                         args = tmpArgs;
                         break;
                     }
                 }
+            }
+            else if (args.Length == 1 && args[0].StartsWith("$") && args[0].Length > 2)
+            {
+                args = new string[2];
+                args[0] = "$";
+                args[1] = command.Substring(1);
             }
 
             return args.ToList<string>();
@@ -142,6 +148,53 @@ namespace IGSB
             switch (cmdArgs[0].ToLower())
             {
                 case "":
+                    break;
+                case "$r":
+                    if (Validate("MS", cmdArgs))
+                    {
+                        var code = cmdArgs[1];
+                        DeleteShortCode(IGClient.SettingsFile, code);
+                    }
+                    break;
+                case "$s":
+                    if (Validate("MS;MS;OS;OS;OS;OS;OS", cmdArgs))
+                    {
+                        var code = cmdArgs[1];
+                        if ("sr".Contains(cmdArgs[1]) && code.Length == 1)
+                        {
+                            R("RESERVED_SHORTCODE");
+                        }
+                        else
+                        {
+                            var cmd = string.Join(" ", cmdArgs.ToArray(), 2, cmdArgs.Count - 2).Trim();
+                            SetShortCode(IGClient.SettingsFile, code, cmd);
+                        }
+                    }
+                    break;
+                case "$":
+                    if (Validate("", cmdArgs, false))
+                    {
+                        ListShortCodes(IGClient.SettingsFile);
+                    }
+                    else
+                    {
+                        var cmdList = GetShortCode(IGClient.SettingsFile, cmdArgs[1]);
+
+                        if (!string.IsNullOrEmpty(cmdList))
+                        {
+                            if (cmdList.StartsWith("$"))
+                                R("CANNOT_EMBED_CODES");
+                            else
+                            {
+                                var cmds = cmdList.Split(";");
+                                foreach (var cmd in cmds)
+                                {
+                                    M(enmMessageType.Highlight, $"$> {cmd}");
+                                    if (!CommandParse(cmd)) break;
+                                }
+                            }
+                        }
+                    }
                     break;
                 case "/dt":
                 case "date":
@@ -1125,7 +1178,7 @@ namespace IGSB
             M(enmMessageType.Info, "closeall = Close ALL open positions (/ca)");
             M(enmMessageType.Info, "close <dealId> = Close a specific position using its dealId (/cd)");
             M(enmMessageType.Info, "model load <model> = Load specific model (/ml)");
-            M(enmMessageType.Info, "model delete <model> = Delete specific model (/md)");
+            M(enmMessageType.Info, "model delete <model|wildcards> = Delete specific model (/md)");
             M(enmMessageType.Info, "model copy <model> <newmodel> = Copy specific model (/mc)");
             M(enmMessageType.Info, "model rename <model> <newmodel> = Rename model (/mr)");
             M(enmMessageType.Info, "model info [<schema|wildcards>] = Get additional information for models (/mi)");
@@ -1139,12 +1192,12 @@ namespace IGSB
             M(enmMessageType.Info, "begin = Begin collection of data (/bc)");
             M(enmMessageType.Info, "end = End collection of data (/ec)");
             M(enmMessageType.Info, "info [<days>] = Display todays transactions or transaction for last number of days, max 100 (/i)");
-            M(enmMessageType.Info, "dataset save <schema> [-d] [-a] = Save dataset for specific schema, -d stops automatic date/time naming, -a includes hidden columns (/ds)");
-            M(enmMessageType.Info, "dataset delete <schema|wildcards> = Delete dataset schema (/dd)");
-            M(enmMessageType.Info, "dataset copy <schema> <newschema> = Copy dataset schema (/dc)");
-            M(enmMessageType.Info, "dataset rename <schema> <newschema> = Rename dataset schema (/dr)");
-            M(enmMessageType.Info, "dataset info [<schema|wildcards>] = Get additional information for schema (/di)");
-            M(enmMessageType.Info, "dataset headings [<schema|wildcards>] = Get column information for schema (/dh)");
+            M(enmMessageType.Info, "dataset save <dataset> [-d] [-a] = Save dataset for specific schema, -d stops automatic date/time naming, -a includes hidden columns (/ds)");
+            M(enmMessageType.Info, "dataset delete <dataset|wildcards> = Delete dataset schema (/dd)");
+            M(enmMessageType.Info, "dataset copy <dataset> <newdataset> = Copy dataset schema (/dc)");
+            M(enmMessageType.Info, "dataset rename <dataset> <newdataset> = Rename dataset schema (/dr)");
+            M(enmMessageType.Info, "dataset info [<dataset|wildcards>] = Get additional information for schema (/di)");
+            M(enmMessageType.Info, "dataset headings [<dataset|wildcards>] = Get column information for schema (/dh)");
             M(enmMessageType.Info, "dataset = List all dataset schemas (/d)");
             M(enmMessageType.Info, "open = Display all current open positions (/o)");
             M(enmMessageType.Info, "search <value> = Locate an instrument name and return all matches (/se)");
@@ -1170,7 +1223,7 @@ namespace IGSB
             M(enmMessageType.Info, "alias set <alias> <value> -r = Change a value for an alias in the current watch file, -r specifies that you reload the watch file (/as)");
             M(enmMessageType.Info, "log = List all log files (/l)");
             M(enmMessageType.Info, "log type <lines> <logfile> = Type last specified number of lines (max 250) of specified log file (/lt)");
-            M(enmMessageType.Info, "log delete <logfile> = Delete a specific log file (/ld)");
+            M(enmMessageType.Info, "log delete <logfile|wildcards> = Delete a specific log file (/ld)");
             M(enmMessageType.Info, "log copy <logfile> <newlogfile> = Copy a specific log file (/lc)");
             M(enmMessageType.Info, "log rename <logfile> <newlogfile> = Rename a specific log file (/lr)");
             M(enmMessageType.Info, "log info [<logfile|wildcards>] = Get additional information for log files (/li)");
@@ -1178,6 +1231,9 @@ namespace IGSB
             M(enmMessageType.Info, "schema = List all schemas and show current details (/sc)");
             M(enmMessageType.Info, "schema +a <schema> = Activate a schema to allow it to capture incoming values (/sc+)");
             M(enmMessageType.Info, "schema -a <schema> = InActivate a schema to stop it capturing incoming values (/sc-)");
+            M(enmMessageType.Info, "$ = List all short codes");
+            M(enmMessageType.Info, "$s = Add or update a short code");
+            M(enmMessageType.Info, "$r = Remove a short code");
         }
 
         public void InfoDataSet(string schema)
@@ -1506,7 +1562,7 @@ namespace IGSB
             else R("NO_LOGFILE");
         }
 
-        public void SetAlias(string watchFile, string aliasKey, string value)
+        public void SetAlias(string watchFile, string key, string value)
         {
             JObject watchFileJson;
 
@@ -1518,7 +1574,7 @@ namespace IGSB
 
             foreach (JObject alias in watchFileJson["alias"])
             {
-                if (alias["alias"].ToString().Equals(aliasKey))
+                if (alias["alias"].ToString().Equals(key))
                 {
                     alias["name"] = value;
                     break;
@@ -1532,6 +1588,108 @@ namespace IGSB
             }
 
             R("RELOAD_WATCH");
+        }
+
+        public void SetShortCode(string settingsFile, string key, string value)
+        {
+            JObject watchFileJson;
+
+            using (StreamReader file = File.OpenText(settingsFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                watchFileJson = (JObject)JToken.ReadFrom(reader);
+            }
+
+            var found = false;
+
+            foreach (JObject code in watchFileJson["shortcodes"])
+            {
+                if (code["key"].ToString().Equals(key))
+                {
+                    found = true;
+                    code["value"] = value;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                JObject item = new JObject();
+                item.Add("key", key);
+                item.Add("value", value);
+                ((JArray)watchFileJson["shortcodes"]).Add(item);
+            }
+
+            using (StreamWriter file = File.CreateText(settingsFile))
+            using (JsonTextWriter writer = new JsonTextWriter(file))
+            {
+                watchFileJson.WriteTo(writer);
+            }
+        }
+
+        public void DeleteShortCode(string settingsFile, string key)
+        {
+            JObject watchFileJson;
+
+            using (StreamReader file = File.OpenText(settingsFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                watchFileJson = (JObject)JToken.ReadFrom(reader);
+            }
+
+            foreach (JObject code in watchFileJson["shortcodes"])
+            {
+                if (code["key"].ToString().Equals(key))
+                {
+                    code.Remove();
+                    break;
+                }
+            }
+
+            using (StreamWriter file = File.CreateText(settingsFile))
+            using (JsonTextWriter writer = new JsonTextWriter(file))
+            {
+                watchFileJson.WriteTo(writer);
+            }
+        }
+
+        public void ListShortCodes(string settingsFile)
+        {
+            JObject watchFileJson;
+
+            using (StreamReader file = File.OpenText(settingsFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                watchFileJson = (JObject)JToken.ReadFrom(reader);
+            }
+
+            foreach (JObject code in watchFileJson["shortcodes"])
+            {
+                M(enmMessageType.Info, $"{code["key"]} = {code["value"]}");
+            }
+        }
+
+        public string GetShortCode(string settingsFile, string key)
+        {
+            var retval = string.Empty;
+            JObject settingsFileJson;
+
+            using (StreamReader file = File.OpenText(settingsFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                settingsFileJson = (JObject)JToken.ReadFrom(reader);
+            }
+
+            foreach (JObject code in settingsFileJson["shortcodes"])
+            {
+                if (code["key"].ToString().Equals(key))
+                {
+                    retval = code["value"].ToString();
+                    break;
+                }
+            }
+
+            return retval;
         }
     }
 }

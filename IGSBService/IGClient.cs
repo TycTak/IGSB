@@ -31,7 +31,8 @@ namespace IGSB
             Fatal,
             Exit,
             Debug,
-            Trace
+            Trace,
+            Highlight
         }
 
         public enum enmContinuousDisplay

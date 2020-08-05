@@ -7,12 +7,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using static IGSB.BaseCodeLibrary;
 using static IGSB.IGClient;
 
@@ -101,19 +98,10 @@ namespace ConsoleApp6ML.ConsoleApp
 
         private ITransformer GetModel(string[] columns, out IEstimator<ITransformer> trainingPipeline)
         {
-            //// Data process configuration with pipeline data transformations 
-            //var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "F0", "F2", "F3", "F4", "F5", "F6", "F9" });
-            //// Set the training algorithm 
-            //var trainer = mlContext.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features");
-
-            //var trainingPipeline = dataProcessPipeline.Append(trainer);
-
-            //return trainingPipeline;
-
             var featureColumns = columns.Select(x => x.Split(";")[0]).ToArray();
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", featureColumns);
-            var trainer = mlContext.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features");
-            //var trainer = mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options() { NumberOfIterations = 100, LearningRate = 0.1885655f, NumberOfLeaves = 39, MinimumExampleCountPerLeaf = 10, UseCategoricalSplit = false, HandleMissingValue = false, UseZeroAsMissingValue = true, MinimumExampleCountPerGroup = 200, MaximumCategoricalSplitPointCount = 16, CategoricalSmoothing = 1, L2CategoricalRegularization = 10, Booster = new GradientBooster.Options() { L2Regularization = 0.5, L1Regularization = 0 }, LabelColumnName = "Label", FeatureColumnName = "Features" });
+            //var trainer = mlContext.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features");
+            var trainer = mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options() { NumberOfIterations = 100, LearningRate = 0.1885655f, NumberOfLeaves = 39, MinimumExampleCountPerLeaf = 10, UseCategoricalSplit = false, HandleMissingValue = false, UseZeroAsMissingValue = true, MinimumExampleCountPerGroup = 200, MaximumCategoricalSplitPointCount = 16, CategoricalSmoothing = 1, L2CategoricalRegularization = 10, Booster = new GradientBooster.Options() { L2Regularization = 0.5, L1Regularization = 0 }, LabelColumnName = "Label", FeatureColumnName = "Features" });
             trainingPipeline = dataProcessPipeline.Append(trainer);
             return trainingPipeline.Fit(trainingDataView);
         }
@@ -356,16 +344,6 @@ namespace ConsoleApp6ML.ConsoleApp
                     //                allowSparse: false);
 
                     var schemaDef = SchemaDefinition.Create(typeof(Data));
-
-                    //var schemaDef = SchemaDefinition.Create(typeof(double));
-
-                    //schemaDef["Features"].ColumnType = new VectorType(NumberType.R4, numberOfFeatures);
-                    //schemaDef.Add(new SchemaDefinition.Column() { ColumnName = "F0" });
-
-                    //public string MemberName { get; }
-                    //public string ColumnName { get; set; }
-                    //public DataViewType ColumnType { get; set; }
-
                     trainingDataView = mlContext.Data.LoadFromEnumerable(lines, schemaDef);
 
                     if (processingColumns.Count > 1) M(enmMessageType.Trace, $"Combinations = {processingColumns.Count}");
@@ -696,6 +674,8 @@ namespace ConsoleApp6ML.ConsoleApp
                             dataType.GetProperty("F" + i).SetValue(data, Convert.ToSingle(valueSplit[i]));
                         }
 
+                        dataType.GetProperty("Label").SetValue(data, Convert.ToSingle(valueSplit[valueSplit.Length - 1]));
+
                         //foreach (var v in valueSplit)
                         //{
                         //    values.Add(v);
@@ -908,38 +888,49 @@ namespace ConsoleApp6ML.ConsoleApp
             [LoadColumn(10), ColumnName("F10")]
             public float F10 { get; set; }
 
-            [LoadColumn(11), ColumnName("Label")]
+
+            [LoadColumn(11), ColumnName("F11")]
+            public float F11 { get; set; }
+
+
+            [LoadColumn(12), ColumnName("F12")]
+            public float F12 { get; set; }
+
+
+            [LoadColumn(13), ColumnName("F13")]
+            public float F13 { get; set; }
+
+
+            [LoadColumn(14), ColumnName("F14")]
+            public float F14 { get; set; }
+
+
+            [LoadColumn(15), ColumnName("F15")]
+            public float F15 { get; set; }
+
+
+            [LoadColumn(16), ColumnName("F16")]
+            public float F16 { get; set; }
+
+
+            [LoadColumn(17), ColumnName("F17")]
+            public float F17 { get; set; }
+
+
+            [LoadColumn(18), ColumnName("F18")]
+            public float F18 { get; set; }
+
+
+            [LoadColumn(19), ColumnName("F19")]
+            public float F19 { get; set; }
+
+
+            [LoadColumn(20), ColumnName("F20")]
+            public float F20 { get; set; }
+
+
+            [LoadColumn(21), ColumnName("Label")]
             public Single Label { get; set; }
-
-            //[ColumnName("F12")]
-            //public Single F12 { get; set; }
-
-            //[ColumnName("F13")]
-            //public Single F13 { get; set; }
-
-            //[ColumnName("F14")]
-            //public Single F14 { get; set; }
-
-            //[ColumnName("F15")]
-            //public Single F15 { get; set; }
-
-            //[ColumnName("F16")]
-            //public Single F16 { get; set; }
-
-            //[ColumnName("F17")]
-            //public Single F17 { get; set; }
-
-            //[ColumnName("F18")]
-            //public Single F18 { get; set; }
-
-            //[ColumnName("F19")]
-            //public Single F19 { get; set; }
-
-            //[ColumnName("F20")]
-            //public Single F20 { get; set; }
-
-            //[LoadColumn(11), ColumnName("label")]
-            //public float Label { get; set; }
         }
 
         public class Prediction

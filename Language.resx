@@ -120,6 +120,9 @@
   <data name="ACTIVATE_SCHEMA" xml:space="preserve">
     <value>Info;Schema is active</value>
   </data>
+  <data name="CANNOT_EMBED_CODES" xml:space="preserve">
+    <value>Error;Cannot embed short codes within short codes</value>
+  </data>
   <data name="CHECK_PASSWORD" xml:space="preserve">
     <value>Info;Checking password strength</value>
   </data>
@@ -179,6 +182,9 @@
   </data>
   <data name="RELOAD_WATCH" xml:space="preserve">
     <value>Error;You must reload watch file to see changes</value>
+  </data>
+  <data name="RESERVED_SHORTCODE" xml:space="preserve">
+    <value>Error;Reserved shortcode, you cannot assign anything to that code</value>
   </data>
   <data name="START" xml:space="preserve">
     <value>Info;Type 'begin' or '/bc' to begin collecting data</value>

@@ -70,6 +70,15 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error;Cannot embed short codes within short codes.
+        /// </summary>
+        internal static string CANNOT_EMBED_CODES {
+            get {
+                return ResourceManager.GetString("CANNOT_EMBED_CODES", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Info;Checking password strength.
         /// </summary>
         internal static string CHECK_PASSWORD {
@@ -246,6 +255,15 @@ namespace IGSB {
         internal static string RELOAD_WATCH {
             get {
                 return ResourceManager.GetString("RELOAD_WATCH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Reserved shortcode, you cannot assign anything to that code.
+        /// </summary>
+        internal static string RESERVED_SHORTCODE {
+            get {
+                return ResourceManager.GetString("RESERVED_SHORTCODE", resourceCulture);
             }
         }
         

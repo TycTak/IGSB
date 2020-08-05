@@ -52,8 +52,6 @@ namespace IGSB
                 @long
             }
 
-            //public string Raw { get; set; }
-
             public bool IsNewRecordEvent { get; set; }
 
             public bool IsColumn { get; set; }

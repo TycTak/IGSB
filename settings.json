@@ -9,5 +9,11 @@
       "sourceurl": "https://demo-api.ig.com", // Point to DEMO or LIVE url
       "X-IG-API-KEY": "56cd58a628b4f7fb494b54bfd2668d91e55fba74"
     }
+  ],
+  "shortcodes": [
+    {
+      "key": "t1",
+      "value": "train oscillator signal"
+    }
   ]
 }

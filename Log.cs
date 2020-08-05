@@ -16,6 +16,16 @@ namespace IGSB
             log.Info(message);
         }
 
+        static public void Highlight(string message)
+        {
+            if (!string.IsNullOrEmpty(message))
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(message);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            }
+        }
+
         static public void Trace(string message)
         {
             log.Trace(message);
@@ -106,6 +116,7 @@ namespace IGSB
             switch (messageType)
             {
                 case enmMessageType.Info: Info(message); break;
+                case enmMessageType.Highlight: Highlight(message); break;
                 case enmMessageType.Fatal: Fatal(message); break;
                 case enmMessageType.Warn: Warn(message); break;
                 case enmMessageType.Error: Error(message); break;
