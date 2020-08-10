@@ -2,10 +2,16 @@
 
 Command line driven C# application which connects to the IG API for Share Betting and uses machine learning by Microsoft ML to look for potential trading opportunities.
 
-<a href="https://www.linkedin.com/in/tyctak/"><img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"/>Mike Clark Linked In</a>
+<a href="https://www.linkedin.com/in/tyctak/"><img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"/>&nbsp;&nbsp;Mike Clark</a>
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
+
+
+CORE
+
+
 
 ### Prerequisites
 
@@ -59,9 +65,14 @@ Add additional notes about how to deploy this on a live system
 
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* [IG API](https://labs.ig.com/sample-apps) - IG Live Streaming and WEB API definitions and schemas
+* [IG Web Site](https://www.ig.com/uk/login) - IG Main Web Site
+* [IG Companion](https://labs.ig.com/sample-apps/api-companion/index.html) - IG Companion
+* [Newtonsoft Json](https://www.newtonsoft.com/json) - Json helper for C#
+* [NLOG](https://nlog-project.org/) - Bespoke logging helper for C#
+
+
+
 
 ## Contributing
 
