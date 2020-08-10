@@ -6,6 +6,7 @@ using static IGSB.BaseFormulaLibrary;
 using System.Linq;
 using static IGSB.IGClient;
 using static IGSB.WatchFile.SchemaInstrument;
+using ConsoleApp6ML.ConsoleApp;
 
 namespace IGSB
 {
@@ -95,6 +96,11 @@ namespace IGSB
             return retval;
         }
 
+        private bool IsValid(JObject json, string key)
+        {
+            return (json.ContainsKey(key) && !string.IsNullOrEmpty(json[key].ToString()));
+        }
+
         public WatchFile(string watchFileUri, JObject parseObject)
         {
             try
@@ -115,10 +121,13 @@ namespace IGSB
 
                 var assembly = Assembly.GetExecutingAssembly();
 
-                //TODO Alias key and name cannot be blank
-                foreach (JObject alias in parseObject["alias"])
+                if (parseObject.ContainsKey("alias"))
                 {
-                    Alias.Add(alias["alias"].ToString(), alias["name"].ToString());
+                    foreach (JObject alias in parseObject["alias"])
+                    {
+                        if (!IsValid(alias, "alias") || !IsValid(alias, "name")) throw new Exception("Alias or Name missing from watch file settings");
+                        Alias.Add(alias["alias"].ToString(), alias["name"].ToString());
+                    }
                 }
 
                 foreach (var alias in Alias.ToArray())
@@ -149,6 +158,7 @@ namespace IGSB
                     {
                         foreach (JObject setting in schema["settings"])
                         {
+                            if (!IsValid(setting, "key") || !IsValid(setting, "value")) throw new Exception("Key or Value missing from watch file settings");
                             watchSchema.Settings.Add(setting["key"].ToString(), Substitute(setting["value"].ToString()));
                         }
                     }
@@ -173,7 +183,6 @@ namespace IGSB
                         if (isActive)
                         {
                             var schemaInstrument = new SchemaInstrument();
-                            //schemaInstrument.Raw = instrument.ToString();
                             schemaInstrument.IsNewRecordEvent = (instrument.ContainsKey("isnewrecord") ? bool.Parse(instrument["isnewrecord"].ToString()) : false);
                             schemaInstrument.IsColumn = (instrument.ContainsKey("iscolumn") ? bool.Parse(instrument["iscolumn"].ToString()) : true);
                             schemaInstrument.IsPredict = (instrument.ContainsKey("ispredict") ? bool.Parse(instrument["ispredict"].ToString()) : true);
@@ -237,6 +246,7 @@ namespace IGSB
                                     Type = SchemaInstrument.enmType.transform
                                 };
 
+                                schemaInstrument.IsPredict = false;
                                 schemaInstrument.IsColumn = false;
 
                                 watchSchema.SchemaInstruments.Add(transformInstrument);
@@ -270,7 +280,7 @@ namespace IGSB
                 MergeCaptureList.Sort();
             } catch (Exception ex)
             {
-                M(enmMessageType.Error, "WatchList.cstor ERROR: Please check your watch file format");
+                M(enmMessageType.Error, $"WatchList.cstor ERROR: Please check your watch file format [{ex.Message}]");
                 throw ex;
             }
         }

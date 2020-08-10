@@ -19,7 +19,8 @@ namespace ConsoleApp6ML.ConsoleApp
     {
         public static IEnumerable<IEnumerable<T>> DifferentCombinations<T>(this IEnumerable<T> elements, int k)
         {
-            return k == 0 ? new[] { new T[0] } : elements.SelectMany((e, i) => elements.Skip(i + 1).DifferentCombinations(k - 1).Select(c => (new[] { e }).Concat(c)));
+            var retval = (k == 0 ? new[] { new T[0] } : elements.SelectMany((e, i) => elements.Skip(i + 1).DifferentCombinations(k - 1).Select(c => (new[] { e }).Concat(c))));
+            return retval;
         }
     }
 
@@ -101,9 +102,34 @@ namespace ConsoleApp6ML.ConsoleApp
             var featureColumns = columns.Select(x => x.Split(";")[0]).ToArray();
             var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", featureColumns);
             //var trainer = mlContext.Regression.Trainers.FastTree(labelColumnName: "Label", featureColumnName: "Features");
+            //var trainer = mlContext.Regression.Trainers.FastTree(new FastTreeRegressionTrainer.Options() { NumberOfLeaves = 111, MinimumExampleCountPerLeaf = 10, NumberOfTrees = 500, LearningRate = 0.09443268f, Shrinkage = 0.1181826f, LabelColumnName = "Label", FeatureColumnName = "Features" });
             var trainer = mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options() { NumberOfIterations = 100, LearningRate = 0.1885655f, NumberOfLeaves = 39, MinimumExampleCountPerLeaf = 10, UseCategoricalSplit = false, HandleMissingValue = false, UseZeroAsMissingValue = true, MinimumExampleCountPerGroup = 200, MaximumCategoricalSplitPointCount = 16, CategoricalSmoothing = 1, L2CategoricalRegularization = 10, Booster = new GradientBooster.Options() { L2Regularization = 0.5, L1Regularization = 0 }, LabelColumnName = "Label", FeatureColumnName = "Features" });
             trainingPipeline = dataProcessPipeline.Append(trainer);
+
+            //https://medium.com/machinelearningadvantage/detect-text-sentiment-with-an-lstm-neural-network-in-c-e0576190487e
+            //var features = NetUtil.Var(new int[] { 1 }, CNTK.DataType.Float);
+            //var labels = NetUtil.Var(new int[] { 1 }, CNTK.DataType.Float,
+            //    dynamicAxes: new List<CNTK.Axis>() { CNTK.Axis.DefaultBatchAxis() });
+
+            //var lstmUnits = 32;
+            //var network = features
+            //    .OneHotOp(10000, true)
+            //    .Embedding(32)
+            //    .LSTM(lstmUnits, lstmUnits)
+            //    .Dense(1, CNTKLib.Sigmoid)
+            //    .ToNetwork();
+            //Console.WriteLine("Model architecture:");
+
             return trainingPipeline.Fit(trainingDataView);
+
+            //var dataProcessPipeline = mlContext.Transforms.Concatenate("Features", new[] { "Col1", "Col2" })
+            //              .Append(mlContext.Transforms.NormalizeMinMax("Features", "Features"));
+            //var trainer = mlContext.Regression.Trainers.Ols(labelColumnName: "Col3", featureColumnName: "Features");
+
+
+
+
+
         }
 
         private Metric GetMetric(IDataView trainingDataView, IEstimator<ITransformer> trainingPipeline, string[] columns)
@@ -287,7 +313,9 @@ namespace ConsoleApp6ML.ConsoleApp
 
                     if (Model != null) CloseModel();
 
-                    List<string> columns = GetColumns(datasetFileName, predictColumn);
+                    var columns = GetColumns(datasetFileName, predictColumn);
+                    var predictColumnIdx = columns.IndexOf(columns.Single(x => x.StartsWith("Label;")));
+                    var columnIndex = columns.Where(x => !x.StartsWith("Label;")).Select(x => columns.IndexOf($"{x}"));
 
                     var dataColumns2 = new List<TextLoader.Column>();
                     for (var i = 0; i < columns.Count; i++)
@@ -298,18 +326,21 @@ namespace ConsoleApp6ML.ConsoleApp
                     M(enmMessageType.Trace, $"Loaded dataset [{dataset}]");
 
                     ITransformer model = null;
+                    List<int[]> processingColumns2 = new List<int[]>();
                     List<string[]> processingColumns = new List<string[]>();
 
                     if (string.IsNullOrEmpty(features))
                     {
                         for (var i = Convert.ToInt32(columns.Count / 2); i < (columns.Count - 1); i++)
                         {
-                            var combinations = columns.Where(x => !x.StartsWith("Label")).DifferentCombinations<string>(i);
+                            //var combinations = columnIndex.Where(x => !x.StartsWith("Label")).DifferentCombinations<string>(i);
+                            var combinations = columnIndex.DifferentCombinations<int>(i);
+                            M(enmMessageType.NoLine, ".");
 
                             foreach (var combination in combinations)
                             {
-                                var featureColumns = combination.ToArray<string>();
-                                processingColumns.Add(featureColumns);
+                                var featureColumns = combination.ToArray<int>();
+                                processingColumns2.Add(featureColumns);
                             }
                         }
                     }
@@ -350,15 +381,16 @@ namespace ConsoleApp6ML.ConsoleApp
 
                     var rSqAvg = 0d;
 
-                    for (var i = 0; i < processingColumns.Count; i++)
+                    for (var i = 0; i < processingColumns2.Count; i++)
                     {
-                        var combination = processingColumns[i];
+                        var combination = processingColumns2[i];
 
                         IEstimator<ITransformer> trainingPipeline;
 
-                        model = GetModel(combination, out trainingPipeline);
+                        var columnNames = combination.Select(x => columns[x]).ToArray();
+                        model = GetModel(columnNames, out trainingPipeline);
 
-                        var metric = GetMetric(trainingDataView, trainingPipeline, combination);
+                        var metric = GetMetric(trainingDataView, trainingPipeline, columnNames);
                         metricList.Add(metric);
 
                         M(enmMessageType.Trace, $"{String.Join(",", combination)} > L1={metric.MAE:0.###}, L2={metric.Ls2:0.###}, Rms={metric.Rms:0.###}, Loss={metric.Lss:0.###}, RSq={metric.RSq:0.###}, Scr={metric.Score:0.###}");
@@ -928,8 +960,34 @@ namespace ConsoleApp6ML.ConsoleApp
             [LoadColumn(20), ColumnName("F20")]
             public float F20 { get; set; }
 
+            [LoadColumn(21), ColumnName("F21")]
+            public Single F21 { get; set; }
 
-            [LoadColumn(21), ColumnName("Label")]
+            [LoadColumn(22), ColumnName("F22")]
+            public Single F22 { get; set; }
+
+            [LoadColumn(23), ColumnName("F23")]
+            public Single F23 { get; set; }
+
+            [LoadColumn(24), ColumnName("F24")]
+            public Single F24 { get; set; }
+
+            [LoadColumn(25), ColumnName("F25")]
+            public Single F25 { get; set; }
+
+            [LoadColumn(26), ColumnName("F26")]
+            public Single F26 { get; set; }
+
+            [LoadColumn(27), ColumnName("F27")]
+            public Single F27 { get; set; }
+
+            [LoadColumn(28), ColumnName("F28")]
+            public Single F28 { get; set; }
+
+            [LoadColumn(29), ColumnName("F29")]
+            public Single F29 { get; set; }
+
+            [LoadColumn(30), ColumnName("Label")]
             public Single Label { get; set; }
         }
 

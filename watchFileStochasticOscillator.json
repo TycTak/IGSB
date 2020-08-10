@@ -4,11 +4,11 @@
   "currency": "GBP",
   "alias": [
     {
-      "name": "CS.D.BITCOIN.TODAY.IP",
+      "name": "IX.D.FTSE.DAILY.IP",
       "alias": "epic"
     },
     {
-      "name": "normalise,20000,30000",
+      "name": "normalise,6000,30000",
       "alias": "epictransform"
     }
   ],

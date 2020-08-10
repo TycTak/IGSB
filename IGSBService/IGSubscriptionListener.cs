@@ -4,7 +4,6 @@ using static IGSB.IGClient;
 
 namespace IGSB
 {
-    //https://lightstreamer.com/docs/client_javascript_uni_api/SubscriptionListener.html
     class IGSubscriptionListener : SubscriptionListener
     {
         private WatchFile watchList;
@@ -62,6 +61,8 @@ namespace IGSB
                                     M(enmMessageType.Info, message);
                                 }
                             }
+
+                            //M(enmMessageType.Debug, String.Format("IGClientListener.onItemUpdate {0} {1} {2} {3}", pushed, itemUpdate.ItemName, changed.Key, changed.Value));
                         }
                     }
                 }

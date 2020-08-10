@@ -32,7 +32,8 @@ namespace IGSB
             Exit,
             Debug,
             Trace,
-            Highlight
+            Highlight,
+            NoLine
         }
 
         public enum enmContinuousDisplay

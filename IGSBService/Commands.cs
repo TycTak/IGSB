@@ -193,7 +193,8 @@ namespace IGSB
                                     if (!CommandParse(cmd)) break;
                                 }
                             }
-                        }
+                        } else
+                            R("INVALID_PARAMETERS");
                     }
                     break;
                 case "/dt":
@@ -1055,7 +1056,7 @@ namespace IGSB
         {
             foreach (var schema in IGClient.WatchFile.Schemas)
             {
-                M(enmMessageType.Info, $"{schema.SchemaName} active={schema.IsActive}");
+                M(enmMessageType.Info, $"{schema.SchemaName} active={schema.IsActive.ToString().ToLower()}");
             }
         }
 
@@ -1248,7 +1249,8 @@ namespace IGSB
                 {
                     var info = new FileInfo(x);
                     var lines = File.ReadLines(x).Count();
-                    var heading = File.ReadLines(x).First();
+                    //var heading = File.ReadLines(x).First();
+                    var heading = File.ReadLines(x).Skip(1).First();
 
                     var columnCount = heading.Split(",").Length;
 
@@ -1373,13 +1375,16 @@ namespace IGSB
                     string schemaString = JsonConvert.SerializeObject(schemaObj.SchemaInstruments);
                     file.WriteLine(schemaString);
                     file.WriteLine(GetHeader(schemaObj, includeAllColumns));
+                    var i = 0;
 
                     foreach (var record in schemaObj.CodeLibrary.Values)
                     {
+                        
                         var complete = !record.Values.Any(x => string.IsNullOrEmpty(x.Value));
 
-                        if (complete && !record.Values["completed"].Contains("X"))
+                        if (!record.Values["completed"].Contains("X")) //complete) // && 
                         {
+                            i++;
                             var line = BaseCodeLibrary.GetDatasetRecord(record, schemaObj.SchemaInstruments, includeAllColumns, false);
 
                             file.WriteLine(line);
@@ -1622,7 +1627,7 @@ namespace IGSB
 
             using (StreamWriter file = File.CreateText(settingsFile))
             using (JsonTextWriter writer = new JsonTextWriter(file))
-            {
+            { 
                 watchFileJson.WriteTo(writer);
             }
         }

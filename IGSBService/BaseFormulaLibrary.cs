@@ -242,7 +242,10 @@ namespace IGSB
                         switch (transform.Key.ToLower())
                         {
                             case "normalise":
-                                value = String.Format("{0:0.000000}", Math.Round((Convert.ToDouble(value) - Convert.ToDouble(transform.Value[0])) / (Convert.ToDouble(transform.Value[1]) - Convert.ToDouble(transform.Value[0])), 6));
+                                if (!string.IsNullOrEmpty(value))
+                                {
+                                    value = String.Format("{0:0.000000}", Math.Round((Convert.ToDouble(value) - Convert.ToDouble(transform.Value[0])) / (Convert.ToDouble(transform.Value[1]) - Convert.ToDouble(transform.Value[0])), 6));
+                                }
                                 break;
                             case "categorise":
                                 var categories = new Dictionary<string, string>();
