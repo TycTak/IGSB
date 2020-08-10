@@ -2,7 +2,7 @@
 
 One Paragraph of project description goes here
 
-<a href="http://fvcproductions.com"><img src="https://avatars1.githubusercontent.com/u/4284691?v=3&s=200" title="FVCproductions" alt="FVCproductions"></a>
+<a href="https://www.linkedin.com/in/tyctak/"><img src="https://www.dropbox.com/s/gp6gerjx91wgemz/portrait.png?dl=0" title="Michael Clark" alt="Michael Clark"></a>
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
