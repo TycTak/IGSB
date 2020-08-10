@@ -1,8 +1,8 @@
 ﻿# Project Title
 
-Command line driven C# application which connects to the IG API for Share Betting and uses to machine learning by Microsoft.ML to look for potential trading opportunities.
+Command line driven C# application which connects to the IG API for Share Betting and uses machine learning by Microsoft ML to look for potential trading opportunities.
 
-<a href="https://www.linkedin.com/in/tyctak/">Mike Clark Linked In</a>
+<a href="https://www.linkedin.com/in/tyctak/"><img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"/>Mike Clark Linked In</a>
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
