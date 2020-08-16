@@ -1,4 +1,4 @@
-﻿# Project Title
+﻿# IGSB
 
 Command line driven C# application which connects to the IG API for Share Betting and uses machine learning by Microsoft ML to look for potential trading opportunities.
 
@@ -11,7 +11,9 @@ These instructions will get you a copy of the project up and running on your loc
 
 CORE
 
+### Release Schedule
 
+Still under initial and substantial development so the code shown here is not suitable to download and test at the moment, however the expected first release is due for 2nd November 2013, in the mean time please continue to watch our open source project.
 
 ### Prerequisites
 
