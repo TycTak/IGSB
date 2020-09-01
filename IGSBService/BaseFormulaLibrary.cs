@@ -80,24 +80,24 @@ namespace IGSB
                 {
                     var row = localFormula.Items[i];
 
-                    if (localFormula.Unit == enmUnit.ticks)
-                        retval.Add(values.Count - localFormula.Max + row.Position - 1);
-                    else if (localFormula.ValueType == enmValueType.single || localFormula.ValueType == enmValueType.scale)
-                    {
-                        var milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(row.Position) * 1000);
-                        retval.Add(values.FindLastIndex(x => x.Time < milliseconds));
-                    }
-                    else if (localFormula.ValueType == enmValueType.range)
-                    {
-                        var fromMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(row.Position) * 1000);
-                        var toMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(localFormula.Items[i + 1].Position) * 1000);
+                    //if (localFormula.Unit == enmUnit.ticks)
+                    retval.Add(values.Count - localFormula.Max + row.Position - 1);
+                    //else if (localFormula.ValueType == enmValueType.single || localFormula.ValueType == enmValueType.scale)
+                    //{
+                    //    var milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(row.Position) * 1000);
+                    //    retval.Add(values.FindLastIndex(x => x.Time < milliseconds));
+                    //}
+                    //else if (localFormula.ValueType == enmValueType.range)
+                    //{
+                    //    var fromMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(row.Position) * 1000);
+                    //    var toMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(localFormula.Items[i + 1].Position) * 1000);
 
-                        foreach (var valueInstrument in values.FindAll(x => x.Time <= fromMilliseconds && x.Time >= toMilliseconds)) {
-                            retval.Add(values.IndexOf(valueInstrument));
-                        }
+                    //    foreach (var valueInstrument in values.FindAll(x => x.Time <= fromMilliseconds && x.Time >= toMilliseconds)) {
+                    //        retval.Add(values.IndexOf(valueInstrument));
+                    //    }
 
-                        break;
-                    }
+                    //    break;
+                    //}
                 }
             } else if (localFormula.Type == enmType.capture)
             {
@@ -162,7 +162,7 @@ namespace IGSB
                                 max = Math.Max(max, y);
                                 retval.Items.Add(new LocalFormula.ItemInfo(fieldName, y));
                             }
-                            else if (retval.ValueType == enmValueType.range && retval.Unit == enmUnit.ticks)
+                            else if (retval.ValueType == enmValueType.range) // && retval.Unit == enmUnit.ticks)
                             {
                                 var range = selectedRows.Split(">");
                                 var a = int.Parse(range[0]);
@@ -176,14 +176,14 @@ namespace IGSB
                                     retval.Items.Add(new LocalFormula.ItemInfo(fieldName, x));
                                 }
                             }
-                            else if (retval.ValueType == enmValueType.range && retval.Unit == enmUnit.seconds)
-                            {
-                                var range = selectedRows.Split(">");
-                                var a = int.Parse(range[0]);
-                                var b = int.Parse(range[1]);
-                                retval.Items.Add(new LocalFormula.ItemInfo(fieldName, a));
-                                retval.Items.Add(new LocalFormula.ItemInfo(fieldName, b));
-                            }
+                            //else if (retval.ValueType == enmValueType.range && retval.Unit == enmUnit.seconds)
+                            //{
+                            //    var range = selectedRows.Split(">");
+                            //    var a = int.Parse(range[0]);
+                            //    var b = int.Parse(range[1]);
+                            //    retval.Items.Add(new LocalFormula.ItemInfo(fieldName, a));
+                            //    retval.Items.Add(new LocalFormula.ItemInfo(fieldName, b));
+                            //}
                             else
                             {
                                 var range = selectedRows.Split("~");
@@ -265,7 +265,7 @@ namespace IGSB
                                 break;
                         }
 
-                        var transformKey = $"{formula.Key}+";
+                        var transformKey = $"{formula.Key}_t";
                         values[selected[0]].Values[transformKey] = value;
                     }
                 }

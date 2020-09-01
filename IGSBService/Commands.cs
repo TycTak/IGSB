@@ -932,7 +932,7 @@ namespace IGSB
                 foreach (var column in schema.SchemaInstruments)
                 {
                     co += (string.IsNullOrEmpty(co) ? $"#{i}_{column.Key}" : $", #{i}_{column.Key}");
-                    co += (column.IsColumn ? "" : "^");
+                    co += (column.IsColumn ? "" : "_h");
                 }
             }
 
@@ -1254,7 +1254,7 @@ namespace IGSB
 
                     var columnCount = heading.Split(",").Length;
 
-                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10} line{(lines > 1 ? "s" : " ")}  {columnCount, 3} column{(columnCount > 1 ? "s" : " ")}   {info.CreationTimeUtc}");
+                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10} line{(lines > 1 ? "s" : " ")}  {columnCount, 3} column{(columnCount > 1 ? "s" : " ")}   {info.LastWriteTimeUtc}");
                 }
             }
             else R("NO_DATASET");
@@ -1341,9 +1341,9 @@ namespace IGSB
 
             foreach (var instrument in schema.SchemaInstruments)
             {
-                if ((instrument.IsColumn || includeAllColumns) && (!includePredicted || instrument.IsPredict))
+                if ((instrument.IsColumn || includeAllColumns) && (!includePredicted || !instrument.IsSignal))
                 {
-                    header += (string.IsNullOrEmpty(header) ? instrument.Key : $",{instrument.Key}{(!instrument.IsColumn ? "^" : "")}");
+                    header += (string.IsNullOrEmpty(header) ? instrument.Key : $",{instrument.Key}{(!instrument.IsColumn ? "_h" : "")}");
                 }
             }
 

@@ -1,0 +1,17 @@
+{
+  "indicies" : [
+    {
+      "index": "FTSE100",
+      "items": [
+        {
+          "name": "3I GROUP PLC ORD 73 19/22P",
+          "epic": "KA.D.III.DAILY.IP"
+        },
+        {
+          "name": "ADMIRAL GROUP PLC ORD 0.1P",
+          "epic": "KA.D.ADMLN.DAILY.IP"
+        }
+      ]
+    }
+  ]
+}

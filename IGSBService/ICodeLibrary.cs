@@ -6,7 +6,7 @@ namespace IGSB
 {
     public interface ICodeLibrary
     {
-        void Initialise(string schemaName, Dictionary<string, string> settings, List<SchemaInstrument> instruments);
+        void Initialise(Schema schema);
 
         bool Push(string name, string field, string value);
 

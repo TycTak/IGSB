@@ -21,6 +21,8 @@
       "isactive": "true",
       "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
       "schemaname": "ftse",
+      "unit": "seconds",
+      "unitvalue": "3",
       "instruments": [
         {
           "isnewrecord": "true",
@@ -94,77 +96,67 @@
           "key": "roc30",
           "name": "Roc",
           "datatype": "double",
-          "value": "roc30,0;offer,0;offer,-30",
-          "unit": "ticks"
+          "value": "roc30,0;offer,0;offer,-30"
         },
         {
           "key": "roc60",
           "name": "Roc",
           "datatype": "double",
-          "value": "roc60,0;offer,0;offer,-60",
-          "unit": "ticks"
+          "value": "roc60,0;offer,0;offer,-60"
         },
         {
           "key": "roc90",
           "name": "Roc",
           "datatype": "double",
-          "value": "roc90,0;offer,0;offer,-90",
-          "unit": "ticks"
+          "value": "roc90,0;offer,0;offer,-90"
         },
         {
           "key": "ema12",
           "iscolumn": "false",
           "name": "Ema",
           "datatype": "double",
-          "value": "ema12,0;offer,0>-12",
-          "unit": "ticks"
+          "value": "ema12,0;offer,0>-12"
         },
         {
           "key": "ema26",
           "iscolumn": "false",
           "name": "Ema",
           "datatype": "double",
-          "value": "ema26,0;offer,0>-26",
-          "unit": "ticks"
+          "value": "ema26,0;offer,0>-26"
         },
         {
           "key": "macd",
           "name": "Macd",
           "datatype": "double",
-          "value": "macd,0;ema12,0;ema26,0",
-          "unit": "ticks"
+          "value": "macd,0;ema12,0;ema26,0"
         },
         {
           "key": "ema30",
           "name": "Ema",
           "datatype": "double6",
           "transform": "{epictransform}",
-          "value": "ema30,0;offer,0>-30",
-          "unit": "ticks"
+          "value": "ema30,0;offer,0>-30"
         },
         {
           "key": "ema60",
           "name": "Ema",
           "datatype": "double6",
           "transform": "{epictransform}",
-          "value": "ema60,0;offer,0>-60",
-          "unit": "ticks"
+          "value": "ema60,0;offer,0>-60"
         },
         {
           "key": "ema90",
           "name": "Ema",
           "datatype": "double6",
           "transform": "{epictransform}",
-          "value": "ema90,0;offer,0>-90",
-          "unit": "ticks"
+          "value": "ema90,0;offer,0>-90"
         },
         {
           "key": "avg30",
           "name": "Average",
           "datatype": "double6",
           "transform": "{epictransform}",
-          "value": "avg30,0;offer,0>-30",
-          "unit": "ticks"
+          "value": "avg30,0;offer,0>-30"
         },
         {
           "key": "avg60",
@@ -181,13 +173,11 @@
           "value": "avg90,0;offer,0>-90"
         },
         {
-          "isactive": "true",
-          "ispredict": "false",
+          "issignal": "true",
           "type": "formula",
           "key": "signal30",
           "name": "Signal",
           "datatype": "double",
-          "unit": "ticks",
           "value": "signal30,-30;offer,0;offer,-30",
           "settings": [
             {
@@ -197,13 +187,11 @@
           ]
         },
         {
-          "isactive": "true",
-          "ispredict": "false",
+          "issignal": "true",
           "type": "formula",
           "key": "signal60",
           "name": "Signal",
           "datatype": "double",
-          "unit": "ticks",
           "value": "signal60,-60;offer,0;offer,-60",
           "settings": [
             {
@@ -213,13 +201,11 @@
           ]
         },
         {
-          "isactive": "true",
-          "ispredict": "false",
+          "issignal": "true",
           "type": "formula",
           "key": "signal90",
           "name": "Signal",
           "datatype": "double",
-          "unit": "ticks",
           "value": "signal90,-90;offer,0;offer,-90",
           "settings": [
             {

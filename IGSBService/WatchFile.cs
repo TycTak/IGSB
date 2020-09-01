@@ -7,6 +7,7 @@ using System.Linq;
 using static IGSB.IGClient;
 using static IGSB.WatchFile.SchemaInstrument;
 using ConsoleApp6ML.ConsoleApp;
+using Akka.Dispatch.SysMsg;
 
 namespace IGSB
 {
@@ -16,6 +17,9 @@ namespace IGSB
 
         public class Schema
         {
+            //"unit": "ticks",
+            //"unitvalue": "3",
+
             public ICodeLibrary CodeLibrary { get; set; }
 
             public Dictionary<string, string> Settings { get; set; }
@@ -25,6 +29,10 @@ namespace IGSB
             public string SchemaId { get; set; }
 
             public string SchemaName { get; set; }
+
+            public enmUnit Unit { get; set; }
+
+            public int UnitValue { get; set; }
 
             public bool IsActive { get; set; }
         }
@@ -57,7 +65,9 @@ namespace IGSB
 
             public bool IsColumn { get; set; }
 
-            public bool IsPredict { get; set; }
+            //public bool IsPredict { get; set; }
+
+            public bool IsSignal { get; set; }
 
             public bool IsFuture { get; set; }
 
@@ -76,6 +86,8 @@ namespace IGSB
             public enmDataType DataType { get; set; }
 
             public enmUnit Unit { get; set; }
+
+            public int UnitValue { get; set; }
 
             public Dictionary<string, string> Settings { get; set; }
         }
@@ -145,6 +157,8 @@ namespace IGSB
 
                     watchSchema.SchemaId = Substitute(schema["schemaid"].ToString());
                     watchSchema.SchemaName = Substitute(schema["schemaname"].ToString());
+                    watchSchema.Unit = (SchemaInstrument.enmUnit)Enum.Parse(typeof(SchemaInstrument.enmUnit), schema["unit"].ToString());
+                    watchSchema.UnitValue = int.Parse(schema["unitvalue"].ToString());
                     watchSchema.IsActive = (schema.ContainsKey("isactive") ? bool.Parse(schema["isactive"].ToString()) : false);
                     watchSchema.SchemaInstruments = new List<SchemaInstrument>();
 
@@ -185,7 +199,7 @@ namespace IGSB
                             var schemaInstrument = new SchemaInstrument();
                             schemaInstrument.IsNewRecordEvent = (instrument.ContainsKey("isnewrecord") ? bool.Parse(instrument["isnewrecord"].ToString()) : false);
                             schemaInstrument.IsColumn = (instrument.ContainsKey("iscolumn") ? bool.Parse(instrument["iscolumn"].ToString()) : true);
-                            schemaInstrument.IsPredict = (instrument.ContainsKey("ispredict") ? bool.Parse(instrument["ispredict"].ToString()) : true);
+                            schemaInstrument.IsSignal = (instrument.ContainsKey("issignal") ? bool.Parse(instrument["issignal"].ToString()) : false);
                             schemaInstrument.CacheKey = $"{watchSchema.SchemaId}_{instrument["key"]}";
                             schemaInstrument.Key = instrument["key"].ToString();
                             schemaInstrument.Value = Substitute(instrument["value"].ToString());
@@ -194,7 +208,8 @@ namespace IGSB
 
                             schemaInstrument.Type = (instrument.ContainsKey("type") ? (SchemaInstrument.enmType)Enum.Parse(typeof(SchemaInstrument.enmType), instrument["type"].ToString()) : enmType.formula);
                             schemaInstrument.DataType = (instrument.ContainsKey("datatype") ? (SchemaInstrument.enmDataType)Enum.Parse(typeof(SchemaInstrument.enmDataType), instrument["datatype"].ToString()) : enmDataType.@double);
-                            schemaInstrument.Unit = (instrument.ContainsKey("unit") ? (SchemaInstrument.enmUnit)Enum.Parse(typeof(SchemaInstrument.enmUnit), instrument["unit"].ToString()) : (schemaInstrument.Type == enmType.capture ? enmUnit.none : SchemaInstrument.enmUnit.ticks));
+                            //schemaInstrument.Unit = (schemaInstrument.Type == enmType.capture ? enmUnit.none : unit); // (instrument.ContainsKey("unit") ? (SchemaInstrument.enmUnit)Enum.Parse(typeof(SchemaInstrument.enmUnit), instrument["unit"].ToString()) : (schemaInstrument.Type == enmType.capture ? enmUnit.none : SchemaInstrument.enmUnit.ticks));
+                            //schemaInstrument.UnitValue = (schemaInstrument.Type == enmType.capture ? 0 : unitValue);
 
                             var isFuture = false;
 
@@ -240,13 +255,13 @@ namespace IGSB
                                 {
                                     IsColumn = schemaInstrument.IsColumn,
                                     DataType = schemaInstrument.DataType,
-                                    Key = $"{schemaInstrument.Key}+",
-                                    IsPredict = schemaInstrument.IsPredict,
+                                    Key = $"{schemaInstrument.Key}_t",
+                                    IsSignal = schemaInstrument.IsSignal,
                                     Settings = schemaInstrument.Settings,
                                     Type = SchemaInstrument.enmType.transform
                                 };
 
-                                schemaInstrument.IsPredict = false;
+                                schemaInstrument.IsSignal = false;
                                 schemaInstrument.IsColumn = false;
 
                                 watchSchema.SchemaInstruments.Add(transformInstrument);
@@ -261,14 +276,14 @@ namespace IGSB
                         IsColumn = false,
                         DataType = enmDataType.@string,
                         Key = "completed",
-                        IsPredict = false,
+                        IsSignal = false,
                         Settings = new Dictionary<string, string>(),
                         Type = SchemaInstrument.enmType.transform,
                         Value = new String('X', watchSchema.SchemaInstruments.Where(x => (x.Type == enmType.transform || x.Type == enmType.capture || x.Type == enmType.formula) && !x.IsFuture).Count())
                     };
 
                     watchSchema.SchemaInstruments.Add(completedInstrument);
-                    watchSchema.CodeLibrary.Initialise(watchSchema.SchemaName, watchSchema.Settings, watchSchema.SchemaInstruments);
+                    watchSchema.CodeLibrary.Initialise(watchSchema);
 
                     Schemas.Add(watchSchema);
                 }
