@@ -8,11 +8,11 @@
       "alias": "epic"
     },
     {
-      "name": "normalise,5900,6300",
+      "name": "normalise,5900,6300,double6",
       "alias": "epictransform"
     },
     {
-      "name": "normalise,0,100",
+      "name": "normalise,0,100,double6",
       "alias": "transform100"
     }
   ],
@@ -29,7 +29,7 @@
           "type": "capture",
           "key": "offer",
           "name": "MARKET:{epic}",
-          "datatype": "double6",
+          "datatype": "double",
           "transform": "{epictransform}",
           "value": "OFFER"
         },

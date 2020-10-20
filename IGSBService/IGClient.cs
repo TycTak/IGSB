@@ -117,7 +117,17 @@ namespace IGSB
 
         static public string WatchFileName { get; set; }
 
+        static public string Password { get; set; }
+
         static public string SourceKey { get; set; }
+
+        static public string LongDateFormat { get; set; }
+
+        static public string ShortDateFormat { get; set; }
+
+        static public string ListDateFormat { get; set; }
+
+        static public string CurrencySymbol { get; set; }
 
         static public Security Authentication { get; set; }
 

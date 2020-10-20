@@ -1,12 +1,10 @@
-﻿using Akka.Dispatch.SysMsg;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Tensorflow.Summaries;
 using static IGSB.IGClient;
 
 namespace IGSB
@@ -107,7 +105,7 @@ namespace IGSB
 
             if (args.Length > 0 && args[0].StartsWith("/") && args[0].Length > 2)
             {
-                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac][/dt][/sc][/ru]";
+                var cmds = "[/ty][/em][/ec][/bc][/se][/cs][/cl][/su][/ca][/cd][/ac][/dt][/sc][/ru][/fe]";
 
                 for (var i = args[0].Length; i >= 2; i--)
                 {
@@ -136,6 +134,8 @@ namespace IGSB
                 args[1] = command.Substring(1);
             }
 
+            args = args.ToList<string>().FindAll(x => x.Length > 0).ToArray();
+
             return args.ToList<string>();
         }
 
@@ -145,408 +145,436 @@ namespace IGSB
 
             var cmdArgs = GetArgs(command);
 
-            switch (cmdArgs[0].ToLower())
+            if (cmdArgs.Count > 0)
             {
-                case "":
-                    break;
-                case "$r":
-                    if (Validate("MS", cmdArgs))
-                    {
-                        var code = cmdArgs[1];
-                        DeleteShortCode(IGClient.SettingsFile, code);
-                    }
-                    break;
-                case "$s":
-                    if (Validate("MS;MS;OS;OS;OS;OS;OS", cmdArgs))
-                    {
-                        var code = cmdArgs[1];
-                        if ("sr".Contains(cmdArgs[1]) && code.Length == 1)
+                switch (cmdArgs[0].ToLower())
+                {
+                    case "":
+                        break;
+                    case "$d":
+                        if (Validate("MS", cmdArgs))
                         {
-                            R("RESERVED_SHORTCODE");
+                            var code = cmdArgs[1];
+                            DeleteShortCode(IGClient.SettingsFile, code);
+                        }
+                        break;
+                    case "$s":
+                        if (Validate("MS;MS;OS;OS;OS;OS;OS", cmdArgs))
+                        {
+                            var code = cmdArgs[1];
+                            if ("sr".Contains(cmdArgs[1]) && code.Length == 1)
+                            {
+                                R("RESERVED_SHORTCODE");
+                            }
+                            else
+                            {
+                                var cmd = string.Join(" ", cmdArgs.ToArray(), 2, cmdArgs.Count - 2).Trim();
+                                SetShortCode(IGClient.SettingsFile, code, cmd);
+                            }
+                        }
+                        break;
+                    case "$":
+                        if (Validate("", cmdArgs, false))
+                        {
+                            ListShortCodes(IGClient.SettingsFile);
                         }
                         else
                         {
-                            var cmd = string.Join(" ", cmdArgs.ToArray(), 2, cmdArgs.Count - 2).Trim();
-                            SetShortCode(IGClient.SettingsFile, code, cmd);
-                        }
-                    }
-                    break;
-                case "$":
-                    if (Validate("", cmdArgs, false))
-                    {
-                        ListShortCodes(IGClient.SettingsFile);
-                    }
-                    else
-                    {
-                        var cmdList = GetShortCode(IGClient.SettingsFile, cmdArgs[1]);
+                            var cmdList = GetShortCode(IGClient.SettingsFile, cmdArgs[1]);
 
-                        if (!string.IsNullOrEmpty(cmdList))
-                        {
-                            if (cmdList.StartsWith("$"))
-                                R("CANNOT_EMBED_CODES");
-                            else
+                            if (!string.IsNullOrEmpty(cmdList))
                             {
-                                var cmds = cmdList.Split(";");
-                                foreach (var cmd in cmds)
+                                if (cmdList.StartsWith("$"))
+                                    R("CANNOT_EMBED_CODES");
+                                else
                                 {
-                                    M(enmMessageType.Highlight, $"$> {cmd}");
-                                    if (!CommandParse(cmd)) break;
+                                    var cmds = cmdList.Split(";");
+
+                                    foreach (var cmd in cmds)
+                                    {
+                                        M(enmMessageType.Highlight, $"$> {cmd}");
+                                        if (!CommandParse(cmd)) break;
+                                    }
                                 }
                             }
-                        } else
-                            R("INVALID_PARAMETERS");
-                    }
-                    break;
-                case "/dt":
-                case "date":
-                    M(enmMessageType.Info, $"{DateTime.Now.ToString():s}");
-                    break;
-                case "/?":
-                case "help":
-                    if (Validate("", cmdArgs)) Help();
-                    break;
-                case "/ty":
-                case "type":
-                    if (Validate("MS;ON;O~^-a$", cmdArgs)) TypeOut(cmdArgs[1], 0, Convert.ToInt32(cmdArgs[2]), cmdArgs[3] == "-a");
-                    break;
-                case "/r":
-                case "reload":
-                    if (Validate("MS;OS", cmdArgs)) Reload(cmdArgs[1], cmdArgs[2]);
-                    break;
-                case "/em":
-                case "empty":
-                    if (Validate("MS", cmdArgs)) Empty(cmdArgs[1]);
-                    break;
-                case "/ec":
-                case "end":
-                    if (Validate("", cmdArgs)) IsCapture(true);
-                    break;
-                case "/bc":
-                case "begin":
-                    if (Validate("", cmdArgs)) IsCapture(false);
-                    break;
-                case "/p":
-                case "passwd":
-                    if (Validate("MS;MS", cmdArgs)) ChangePassword(null, null, cmdArgs[1], cmdArgs[2]);
-                    break;
-                case "/i":
-                case "info":
-                    if (Validate("ON", cmdArgs)) Transactions(int.Parse(cmdArgs[1]));
-                    break;
-                case "/su":
-                case "summary":
-                    if (Validate("", cmdArgs)) Summary();
-                    break;
-                case "/o":
-                case "open":
-                    if (Validate("", cmdArgs)) Open();
-                    break;
-                case "/g":
-                case "get":
-                    if (Validate("MS", cmdArgs)) GetDetails(cmdArgs[1]);
-                    break;
-                case "/ca":
-                case "closeall":
-                    Close(string.Empty);
-                    break;
-                case "/cd":
-                case "close":
-                    if (Validate("MS", cmdArgs)) Close(cmdArgs[1]);
-                    break;
-                case "/s":
-                case "/b":
-                case "sell":
-                case "buy":
-                    if (Validate("MS;MS;MN", cmdArgs, false))
-                        Process(cmdArgs[0], cmdArgs[1], cmdArgs[2], double.Parse(cmdArgs[3]));
-                    else if (Validate("MS", cmdArgs))
-                        Process(cmdArgs[0], cmdArgs[1]);
-                    break;
-                case ">":
-                    if (!IGClient.Pause)
-                    {
-                        if (Validate("", cmdArgs))
-                        {
-                            IGClient.StreamDisplay = enmContinuousDisplay.Subscription;
-                            R("CONTINUOUS_SUBSCRIPTION", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
+                            else
+                                R("INVALID_PARAMETERS");
                         }
-                    }
-                    else R("NEED_TO_RESTART");
-                    break;
-                case ">>":
-                    if (!IGClient.Pause)
-                    {
-                        if (Validate("MS;O~^-a$", cmdArgs))
+                        break;
+                    case "/fe":
+                    case "feed":
+                        if (Validate("MS;MS", cmdArgs)) FeedDataset(cmdArgs[1], cmdArgs[2]);
+                        break;
+                    case "/dt":
+                    case "date":
+                        M(enmMessageType.Info, $"{DateTime.Now.ToString(LongDateFormat)}");
+                        break;
+                    case "/?":
+                    case "help":
+                        if (Validate("OS", cmdArgs)) Help(cmdArgs[1]);
+                        break;
+                    case "/ty":
+                    case "type":
+                        if (Validate("MS;ON;O~^-a$", cmdArgs)) TypeOut(cmdArgs[1], 0, Convert.ToInt32(cmdArgs[2]), cmdArgs[3] == "-a");
+                        break;
+                    case "/r":
+                    case "reload":
+                        if (Validate("OS;OS", cmdArgs)) ReloadWatchFile(cmdArgs[1], cmdArgs[2]);
+                        break;
+                    case "/em":
+                    case "empty":
+                        if (Validate("MS", cmdArgs)) Empty(cmdArgs[1]);
+                        break;
+                    case "/ec":
+                    case "end":
+                        if (Validate("", cmdArgs)) IsCapture(true);
+                        break;
+                    case "/bc":
+                    case "begin":
+                        if (Validate("", cmdArgs)) IsCapture(false);
+                        break;
+                    case "/p":
+                    case "passwd":
+                        if (Validate("MS;MS", cmdArgs)) ChangePassword(null, null, cmdArgs[1], cmdArgs[2]);
+                        break;
+                    case "/i":
+                    case "info":
+                        if (Validate("ON", cmdArgs)) Transactions(int.Parse(cmdArgs[1]));
+                        break;
+                    case "/su":
+                    case "summary":
+                        if (Validate("", cmdArgs)) Summary();
+                        break;
+                    case "/o":
+                    case "open":
+                        if (Validate("", cmdArgs)) Open();
+                        break;
+                    case "/g":
+                    case "get":
+                        if (Validate("MS", cmdArgs)) GetDetails(cmdArgs[1]);
+                        break;
+                    case "/ca":
+                    case "closeall":
+                        Close(string.Empty);
+                        break;
+                    case "/cd":
+                    case "close":
+                        if (Validate("MS", cmdArgs)) Close(cmdArgs[1]);
+                        break;
+                    case "/s":
+                    case "/b":
+                    case "sell":
+                    case "buy":
+                        if (Validate("MS;MN;MS", cmdArgs, false))
+                            Process(cmdArgs[0], cmdArgs[1], double.Parse(cmdArgs[2]), cmdArgs[3]);
+                        else if (Validate("MS;MN", cmdArgs, false))
+                            Process(cmdArgs[0], cmdArgs[1], double.Parse(cmdArgs[2]));
+                        else if (Validate("MS", cmdArgs))
+                            Process(cmdArgs[0], cmdArgs[1]);
+                        break;
+                    case ">":
+                        if (!IGClient.Pause)
                         {
-                            var schema = GetSchema(cmdArgs[1]);
-
-                            if (schema != null)
+                            if (Validate("", cmdArgs))
                             {
-                                var includeAllColumns = (cmdArgs[2] == "-a");
-
-                                IGClient.SchemaFilterName = schema.SchemaName;
-                                IGClient.StreamDisplay = (includeAllColumns ? enmContinuousDisplay.DatasetAllColumns : enmContinuousDisplay.Dataset);
-                                R("CONTINUOUS_DATASET", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
-                                M(enmMessageType.Info, GetHeader(schema, includeAllColumns));
+                                IGClient.StreamDisplay = enmContinuousDisplay.Subscription;
+                                R("CONTINUOUS_SUBSCRIPTION", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
                             }
-                            else R("NO_SCHEMA");
                         }
-                    }
-                    else
-                        R("NEED_TO_RESTART");
-                    break;
-                case ">>>":
-                    if (!IGClient.Pause)
-                    {
-                        if (Validate("MS", cmdArgs))
+                        else R("NEED_TO_RESTART");
+                        break;
+                    case ">>":
+                        if (!IGClient.Pause)
                         {
-                            var schema = GetSchema(cmdArgs[1]);
-
-                            if (schema != null)
+                            if (Validate("MS;O~^-a$", cmdArgs))
                             {
-                                IGClient.StreamDisplay = enmContinuousDisplay.Prediction;
-                                R("CONTINUOUS_PREDICTION", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
-                                M(enmMessageType.Info, GetHeader(schema, false, true));
+                                var schema = GetSchema(cmdArgs[1]);
+
+                                if (schema != null)
+                                {
+                                    var includeAllColumns = (cmdArgs[2] == "-a");
+
+                                    IGClient.SchemaFilterName = schema.SchemaName;
+                                    IGClient.StreamDisplay = (includeAllColumns ? enmContinuousDisplay.DatasetAllColumns : enmContinuousDisplay.Dataset);
+                                    R("CONTINUOUS_DATASET", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
+                                    M(enmMessageType.Info, GetHeader(schema, includeAllColumns));
+                                }
+                                else R("NO_SCHEMA");
                             }
-                            else R("NO_SCHEMA");
                         }
-                    }
-                    else
-                        R("NEED_TO_RESTART");
-                    break;
-                case "/f":
-                case "filter":
-                    if (Validate("MS", cmdArgs, false))
-                    {
-                        IGClient.Filter = cmdArgs[1];
-                        M(enmMessageType.Info, $"Filter set to [{IGClient.Filter}]");
-                    }
-                    else if (Validate("", cmdArgs))
-                    {
-                        IGClient.Filter = default(string);
-                        M(enmMessageType.Info, $"Filter cleared");
-                    }
-                    break;
-                case "/se":
-                case "search":
-                    if (Validate("MS", cmdArgs, false))
-                    {
-                        Search($"{cmdArgs[1]}");
-                    }
-                    break;
-                case "/ac":
-                case "accounts":
-                    if (Validate("", cmdArgs, false))
-                    {
-                        Accounts();
-                    }
-                    break;
-                case "/x":
-                case "exit":
-                    if (Validate("", cmdArgs)) if (CC("Are you sure (Y/n)? ", 'y')) @continue = false;
-                    break;
-                case "/w":
-                case "watch":
-                    if (Validate("", cmdArgs)) GetWatchList();
-                    break;
-                case "/cs":
-                case "cls":
-                    if (Validate("", cmdArgs)) Console.Clear();
-                    break;
-                case "/sc":
-                case "schema":
-                    if (Validate("", cmdArgs, false))
-                    {
-                        Schema();
-                    }
-                    else
-                    {
-                        switch (cmdArgs[1].ToLower())
+                        else
+                            R("NEED_TO_RESTART");
+                        break;
+                    case ">>>":
+                        if (!IGClient.Pause)
                         {
-                            case "+":
-                            case "+a":
-                                if (Validate("MS;MS", cmdArgs)) SchemaActivate($"{cmdArgs[2]}", true);
-                                break;
-                            case "-":
-                            case "-a":
-                                if (Validate("MS;MS", cmdArgs)) SchemaActivate($"{cmdArgs[2]}", false);
-                                break;
-                            default:
-                                R("UNKNOWN");
-                                break;
-                        }
-                    }
-                    break;
-                case "/l":
-                case "log":
-                    if (Validate("", cmdArgs, false))
-                    {
-                        LogFile();
-                    }
-                    else
-                    {
-                        switch (cmdArgs[1].ToLower())
-                        {
-                            case "i":
-                            case "info":
-                                if (Validate("MS;OS", cmdArgs)) InfoLogFile($"{cmdArgs[2]}");
-                                break;
-                            case "t":
-                            case "type":
-                                if (Validate("MS;MN;MS", cmdArgs)) TypeLogFile(Convert.ToInt32(cmdArgs[2]), $"{cmdArgs[3]}");
-                                break;
-                            case "d":
-                            case "delete":
-                                if (Validate("MS;MS", cmdArgs)) DeleteLogFile($"{cmdArgs[2]}");
-                                break;
-                            case "r":
-                            case "rename":
-                                if (Validate("MS;MS;MS", cmdArgs)) RenameLogFile($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            case "c":
-                            case "copy":
-                                if (Validate("MS;MS;MS", cmdArgs)) CopyLogFile($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            default:
-                                R("UNKNOWN");
-                                break;
-                        }
-                    }
-                    break;
-                case "/a":
-                case "alias":
-                    if (Validate("", cmdArgs, false))
-                    {
-                        GetAliases();
-                    } else
-                    {
-                        switch (cmdArgs[1].ToLower())
-                        {
-                            case "s":
-                            case "set":
-                                if (Validate("MS;MS;MS;O~^-r$", cmdArgs)) SetAlias(IGClient.WatchFileName, $"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            default:
-                                R("UNKNOWN");
-                                break;
-                        }
-                    }
-                    break;
-                case "/e":
-                case "eval":
-                    if (Validate("MS;ON", cmdArgs)) IGClient.ML.EvaluateModel($"{cmdArgs[1]}", Convert.ToInt32(cmdArgs[2]));
-                    break;
-                case "/t":
-                case "train":
-                    if (Validate("MS;MS;OS", cmdArgs))
-                        IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3]);
-                    else
-                    {
-                        switch (cmdArgs[1].ToLower())
-                        {
-                            case "i":
-                            case "info":
-                                //if (Validate("MS;MS", cmdArgs)) StatisticsModel($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            default:
-                                R("UNKNOWN");
-                                break;
-                        }
-                    }
-                    break;
-                case "/ru":
-                case "run":
-                    if (Validate("MS;OS", cmdArgs)) IGClient.ML.RunModel($"{cmdArgs[1]}");
-                    break;
-                case "/m":
-                case "model":
-                    if (Validate("", cmdArgs, false))
-                        Model();
-                    else
-                    {
-                        switch (cmdArgs[1].ToLower())
-                        {
-                            case "r":
-                            case "rename":
-                                if (Validate("MS;MS;MS", cmdArgs)) RenameModel($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            case "i":
-                            case "info":
-                                if (Validate("MS;OS", cmdArgs)) InfoModel(cmdArgs[2]);
-                                break;
-                            case "c":
-                            case "copy":
-                                if (Validate("MS;MS;MS", cmdArgs)) CopyModel($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            case "d":
-                            case "delete":
-                                if (Validate("MS;MS", cmdArgs)) DeleteModel(cmdArgs[2]);
-                                break;
-                            case "s":
-                            case "save":
-                                if (Validate("MS;MS", cmdArgs)) IGClient.ML.SaveModel(cmdArgs[2]);
-                                break;
-                            case "b":
-                            case "bin":
-                                IGClient.ML.CloseModel();
-                                break;
-                            case "l":
-                            case "load":
-                                if (Validate("MS;MS", cmdArgs)) IGClient.ML.LoadModel(cmdArgs[2]);
-                                break;
-                            default:
-                                R("UNKNOWN");
-                                break;
-                        }
-                    }
+                            if (Validate("MS", cmdArgs))
+                            {
+                                var schema = GetSchema(cmdArgs[1]);
 
-                    break;
-                case "/d":
-                case "dataset":
-                    if (Validate("", cmdArgs, false))
-                        DataSet();
-                    else
-                    {
-                        switch (cmdArgs[1].ToLower())
-                        {
-                            case "h":
-                            case "headings":
-                                if (Validate("MS;OS", cmdArgs)) HeadingsDataSet(cmdArgs[2]);
-                                break;
-                            case "i":
-                            case "info":
-                                if (Validate("MS;OS", cmdArgs)) InfoDataSet(cmdArgs[2]);
-                                break;
-                            case "r":
-                            case "rename":
-                                if (Validate("MS;MS;MS", cmdArgs)) RenameDataSet($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            case "c":
-                            case "copy":
-                                if (Validate("MS;MS;MS", cmdArgs)) CopyDataSet($"{cmdArgs[2]}", $"{cmdArgs[3]}");
-                                break;
-                            case "d":
-                            case "delete":
-                                if (Validate("MS;MS", cmdArgs)) DeleteDataSet(cmdArgs[2]);
-                                break;
-                            case "s":
-                            case "save":
-                                if (Validate("MS;MS;O~^-d|-a$;O~^-d|-a$", cmdArgs)) SaveDataSet(cmdArgs[2], (cmdArgs[3] == "-d" || cmdArgs[4] == "-d"), (cmdArgs[3] == "-a" || cmdArgs[4] == "-a"));
-                                break;
-                            default:
-                                R("UNKNOWN");
-                                break;
+                                if (schema != null)
+                                {
+                                    IGClient.StreamDisplay = enmContinuousDisplay.Prediction;
+                                    R("CONTINUOUS_PREDICTION", new List<string> { (string.IsNullOrEmpty(IGClient.Filter) ? "--" : $"[{IGClient.Filter}]") });
+                                    M(enmMessageType.Info, GetHeader(schema, false, true));
+                                }
+                                else R("NO_SCHEMA");
+                            }
                         }
-                    }
+                        else
+                            R("NEED_TO_RESTART");
+                        break;
+                    case "/f":
+                    case "filter":
+                        if (Validate("MS", cmdArgs, false))
+                        {
+                            IGClient.Filter = cmdArgs[1];
+                            M(enmMessageType.Info, $"Filter set to [{IGClient.Filter}]");
+                        }
+                        else if (Validate("", cmdArgs))
+                        {
+                            IGClient.Filter = default(string);
+                            M(enmMessageType.Info, $"Filter cleared");
+                        }
+                        break;
+                    case "/se":
+                    case "search":
+                        if (Validate("MS", cmdArgs, false))
+                        {
+                            Search($"{cmdArgs[1]}");
+                        }
+                        break;
+                    case "/ac":
+                    case "accounts":
+                        if (Validate("", cmdArgs, false))
+                        {
+                            Accounts();
+                        }
+                        break;
+                    case "/x":
+                    case "exit":
+                        if (Validate("", cmdArgs)) if (CC("Are you sure (Y/n)? ", 'y')) @continue = false;
+                        break;
+                    case "/w":
+                    case "watch":
+                        if (Validate("", cmdArgs)) GetWatchList();
+                        break;
+                    case "/cs":
+                    case "cls":
+                        if (Validate("", cmdArgs)) Console.Clear();
+                        break;
+                    case "/sc":
+                    case "schema":
+                        if (Validate("", cmdArgs, false))
+                        {
+                            Schemas();
+                        }
+                        else
+                        {
+                            switch (cmdArgs[1].ToLower())
+                            {
+                                case "+":
+                                case "+a":
+                                    if (Validate("MS;MS", cmdArgs))
+                                    {
+                                        if (!GetSchema(cmdArgs[2]).IsActive)
+                                            SchemaActivate($"{cmdArgs[2]}", true);
+                                        else
+                                            R("SCHEMA_ALREADY_ACTIVE");
+                                    }
+                                    break;
+                                case "-":
+                                case "-a":
+                                    if (Validate("MS;MS", cmdArgs))
+                                    {
+                                        if (GetSchema(cmdArgs[2]).IsActive)
+                                            SchemaActivate($"{cmdArgs[2]}", false);
+                                        else
+                                            R("SCHEMA_ALREADY_INACTIVE");
+                                    }
+                                    break;
+                                default:
+                                    R("UNKNOWN");
+                                    break;
+                            }
+                        }
+                        break;
+                    case "/l":
+                    case "log":
+                        if (Validate("", cmdArgs, false))
+                        {
+                            LogFile();
+                        }
+                        else
+                        {
+                            switch (cmdArgs[1].ToLower())
+                            {
+                                case "i":
+                                case "info":
+                                    if (Validate("MS;OS", cmdArgs)) InfoLogFile($"{cmdArgs[2]}");
+                                    break;
+                                case "t":
+                                case "type":
+                                    if (Validate("MS;MN;MS", cmdArgs)) TypeLogFile(Convert.ToInt32(cmdArgs[2]), $"{cmdArgs[3]}");
+                                    break;
+                                case "d":
+                                case "delete":
+                                    if (Validate("MS;MS", cmdArgs)) DeleteLogFile($"{cmdArgs[2]}");
+                                    break;
+                                case "r":
+                                case "rename":
+                                    if (Validate("MS;MS;MS", cmdArgs)) RenameLogFile($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                case "c":
+                                case "copy":
+                                    if (Validate("MS;MS;MS", cmdArgs)) CopyLogFile($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                default:
+                                    R("UNKNOWN");
+                                    break;
+                            }
+                        }
+                        break;
+                    case "/a":
+                    case "alias":
+                        if (Validate("", cmdArgs, false))
+                        {
+                            ListAliases();
+                        }
+                        else
+                        {
+                            switch (cmdArgs[1].ToLower())
+                            {
+                                case "s":
+                                case "set":
+                                    if (Validate("MS;MS;MS;O~^-r$", cmdArgs)) SetAlias(IGClient.WatchFileName, $"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                case "d":
+                                case "delete":
+                                    if (Validate("MS;MS", cmdArgs)) DeleteAlias(IGClient.WatchFileName, $"{cmdArgs[2]}");
+                                    break;
+                                default:
+                                    R("UNKNOWN");
+                                    break;
+                            }
+                        }
+                        break;
+                    case "/e":
+                    case "eval":
+                        if (Validate("MS;ON", cmdArgs)) IGClient.ML.EvaluateModel($"{cmdArgs[1]}", Convert.ToInt32(cmdArgs[2]));
+                        break;
+                    case "/t":
+                    case "train":
+                        if (Validate("MS;MS;OS", cmdArgs))
+                            IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3]);
+                        else
+                        {
+                            switch (cmdArgs[1].ToLower())
+                            {
+                                case "i":
+                                case "info":
+                                    //if (Validate("MS;MS", cmdArgs)) StatisticsModel($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                default:
+                                    R("UNKNOWN");
+                                    break;
+                            }
+                        }
+                        break;
+                    case "/ru":
+                    case "run":
+                        if (Validate("MS;OS", cmdArgs)) IGClient.ML.RunModel($"{cmdArgs[1]}");
+                        break;
+                    case "/m":
+                    case "model":
+                        if (Validate("", cmdArgs, false))
+                            Model();
+                        else
+                        {
+                            switch (cmdArgs[1].ToLower())
+                            {
+                                case "r":
+                                case "rename":
+                                    if (Validate("MS;MS;MS", cmdArgs)) RenameModel($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                case "i":
+                                case "info":
+                                    if (Validate("MS;OS", cmdArgs)) InfoModel(cmdArgs[2]);
+                                    break;
+                                case "c":
+                                case "copy":
+                                    if (Validate("MS;MS;MS", cmdArgs)) CopyModel($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                case "d":
+                                case "delete":
+                                    if (Validate("MS;MS", cmdArgs)) DeleteModel(cmdArgs[2]);
+                                    break;
+                                case "s":
+                                case "save":
+                                    if (Validate("MS;MS", cmdArgs)) IGClient.ML.SaveModel(cmdArgs[2]);
+                                    break;
+                                case "b":
+                                case "bin":
+                                    IGClient.ML.CloseModel();
+                                    break;
+                                case "l":
+                                case "load":
+                                    if (Validate("MS;MS", cmdArgs)) IGClient.ML.LoadModel(cmdArgs[2]);
+                                    break;
+                                default:
+                                    R("UNKNOWN");
+                                    break;
+                            }
+                        }
 
-                    break;
-                case "/cl":
-                case "client":
-                    if (Validate("", cmdArgs)) GetClientDetails();
-                    break;
-                default:
-                    R("UNKNOWN");
-                    break;
+                        break;
+                    case "/d":
+                    case "dataset":
+                        if (Validate("", cmdArgs, false))
+                            DataSet();
+                        else
+                        {
+                            switch (cmdArgs[1].ToLower())
+                            {
+                                case "h":
+                                case "headings":
+                                    if (Validate("MS;OS", cmdArgs)) HeadingsDataSet(cmdArgs[2]);
+                                    break;
+                                case "i":
+                                case "info":
+                                    if (Validate("MS;OS", cmdArgs)) InfoDataSet(cmdArgs[2]);
+                                    break;
+                                case "r":
+                                case "rename":
+                                    if (Validate("MS;MS;MS", cmdArgs)) RenameDataSet($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                case "c":
+                                case "copy":
+                                    if (Validate("MS;MS;MS", cmdArgs)) CopyDataSet($"{cmdArgs[2]}", $"{cmdArgs[3]}");
+                                    break;
+                                case "d":
+                                case "delete":
+                                    if (Validate("MS;MS", cmdArgs)) DeleteDataSet(cmdArgs[2]);
+                                    break;
+                                case "s":
+                                case "save":
+                                    if (Validate("MS;MS;O~^-d|-a$;O~^-d|-a$", cmdArgs)) SaveDataSet(cmdArgs[2], (cmdArgs[3] == "-d" || cmdArgs[4] == "-d"), (cmdArgs[3] == "-a" || cmdArgs[4] == "-a"));
+                                    break;
+                                default:
+                                    R("UNKNOWN");
+                                    break;
+                            }
+                        }
+
+                        break;
+                    case "/cl":
+                    case "client":
+                        if (Validate("", cmdArgs)) GetClientDetails();
+                        break;
+                    default:
+                        R("UNKNOWN");
+                        break;
+                }
             }
 
             return @continue;
@@ -558,21 +586,23 @@ namespace IGSB
 
             M(enmMessageType.Info, "Authenticating access");
 
+            password = (string.IsNullOrEmpty(password) ? Password : password);
+
             if (CheckStrength(password) >= 4)
             {
                 settingsFile = (string.IsNullOrEmpty(settingsFile) ? SettingsFile : settingsFile);
                 sourceKey = (string.IsNullOrEmpty(sourceKey) ? SourceKey : sourceKey);
                 watchFile = (string.IsNullOrEmpty(watchFile) ? WatchFileName : watchFile);
 
-                var setting = GetSettings(settingsFile, sourceKey);
+                var source = GetSource(settingsFile, sourceKey);
 
-                if (setting == null) M(enmMessageType.Exit, "No settings file or key found");
+                if (source == null) M(enmMessageType.Exit, "No settings file or key found");
 
-                var unencryptedToken = setting["token"].ToString();
+                var unencryptedToken = source["token"].ToString();
 
                 if (unencryptedToken.Equals(Token) || string.IsNullOrEmpty(unencryptedToken))
                 {
-                    unencryptedToken = SaveSettings(settingsFile, password, setting);
+                    unencryptedToken = SaveSource(settingsFile, password, source);
                 }
 
                 var token = EncryptionHelper.Decrypt(unencryptedToken, password);
@@ -583,15 +613,21 @@ namespace IGSB
                     SourceKey = sourceKey;
                     SettingsFile = settingsFile;
                     WatchFileName = watchFile;
+                    Password = password;
+
+                    ShortDateFormat = GetSetting(settingsFile, "shortdateformat");
+                    LongDateFormat = GetSetting(settingsFile, "longdateformat");
+                    ListDateFormat = GetSetting(settingsFile, "listdateformat");
+                    CurrencySymbol = GetSetting(settingsFile, "currencysymbol");
 
                     M(enmMessageType.Info, "Initialising watch file");
 
                     if (InitialiseWatchList(watchFile))
                     {
-                        var apikey = (setting["X-IG-API-KEY"] != null ? setting["X-IG-API-KEY"].ToString() : null);
-                        var sourceUrl = (setting["sourceurl"] != null ? setting["sourceurl"].ToString() : null);
-                        var identifier = EncryptionHelper.Decrypt((setting["identifier"] != null ? setting["identifier"].ToString() : null), password);
-                        var sourcePassword = EncryptionHelper.Decrypt((setting["password"] != null ? setting["password"].ToString() : null), password);
+                        var apikey = (source["X-IG-API-KEY"] != null ? source["X-IG-API-KEY"].ToString() : null);
+                        var sourceUrl = (source["sourceurl"] != null ? source["sourceurl"].ToString() : null);
+                        var identifier = EncryptionHelper.Decrypt((source["identifier"] != null ? source["identifier"].ToString() : null), password);
+                        var sourcePassword = EncryptionHelper.Decrypt((source["password"] != null ? source["password"].ToString() : null), password);
 
                         if (string.IsNullOrEmpty(apikey) || string.IsNullOrEmpty(sourceUrl) || string.IsNullOrEmpty(identifier) || string.IsNullOrEmpty(password))
                         {
@@ -616,8 +652,6 @@ namespace IGSB
         {
             int score = 0;
 
-            R("CHECK_PASSWORD");
-
             if (password.Length > 4)
                 score++;
             if (password.Length >= 8)
@@ -633,6 +667,8 @@ namespace IGSB
             if (Regex.Match(password, @".*[!,@,#,$,%,^,&,*,?,_,~,-,£,(,)].*", RegexOptions.ECMAScript).Success)
                 score++;
 
+            R("CHECK_PASSWORD", new List<string> { score.ToString() });
+
             return score;
         }
 
@@ -645,13 +681,13 @@ namespace IGSB
                 settingsFile = (string.IsNullOrEmpty(settingsFile) ? SettingsFile : settingsFile);
                 sourceKey = (string.IsNullOrEmpty(sourceKey) ? SourceKey : sourceKey);
 
-                var setting = GetSettings(settingsFile, sourceKey);
+                var setting = GetSource(settingsFile, sourceKey);
 
                 var token = setting["token"].ToString();
 
                 if (token.Equals(Token) || string.IsNullOrEmpty(token))
                 {
-                    token = SaveSettings(settingsFile, newPassword, setting);
+                    token = SaveSource(settingsFile, newPassword, setting);
                 }
                 else
                 {
@@ -663,7 +699,7 @@ namespace IGSB
                         setting["identifier"] = EncryptionHelper.Decrypt(setting["identifier"].ToString(), existingPassword);
                         setting["password"] = EncryptionHelper.Decrypt(setting["password"].ToString(), existingPassword);
 
-                        token = SaveSettings(settingsFile, newPassword, setting);
+                        token = SaveSource(settingsFile, newPassword, setting);
                     }
                     else
                     {
@@ -675,25 +711,20 @@ namespace IGSB
                 retval = unencryptedToken.Equals(Token);
 
                 if (retval)
-                {
-                    M(enmMessageType.Info, $"Password changed");
-                    M(enmMessageType.Warn, "NB * You must now change the password you\nuse to login to using that watchfile.");
-                }
+                    R("PASSWORD_CHANGED");
                 else
-                {
-                    M(enmMessageType.Error, $"Unable to change password");
-                }
+                    R("PASSWORD_NOT_CHANGED");
             }
-            else M(enmMessageType.Error, "Invalid password");
+            else R("WEAK_PASSWORD");
 
             return retval;
         }
 
-        public JToken GetSettings(string settingsFile, string access)
+        public string GetSetting(string settingsFile, string key)
         {
             JObject settings;
 
-            M(enmMessageType.Info, "Loading settings");
+            M(enmMessageType.Info, $"Loading setting [{key}]");
 
             using (StreamReader file = File.OpenText(settingsFile))
             using (JsonTextReader reader = new JsonTextReader(file))
@@ -701,14 +732,29 @@ namespace IGSB
                 settings = (JObject)JToken.ReadFrom(reader);
             }
 
-            return settings["sources"].SelectToken("$[?(@.key == '" + access + "')]");
+            return settings[key].ToString();
         }
 
-        private string SaveSettings(string settingsFile, string password, JToken setting)
+        public JToken GetSource(string settingsFile, string source)
         {
             JObject settings;
 
-            M(enmMessageType.Info, "Encrypting settings file");
+            M(enmMessageType.Info, $"Loading source [{source}]");
+
+            using (StreamReader file = File.OpenText(settingsFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                settings = (JObject)JToken.ReadFrom(reader);
+            }
+
+            return settings["sources"].SelectToken("$[?(@.key == '" + source + "')]");
+        }
+
+        private string SaveSource(string settingsFile, string password, JToken setting)
+        {
+            JObject settings;
+
+            R("ENCRYPTING_SETTINGS");
 
             using (StreamReader file = File.OpenText(settingsFile))
             using (JsonTextReader reader = new JsonTextReader(file))
@@ -760,9 +806,9 @@ namespace IGSB
             return retval;
         }
 
-        public void GetAliases()
+        public void ListAliases()
         {
-            foreach (var alias in IGClient.WatchFile.Alias)
+            foreach (var alias in IGClient.WatchFile.Alias.OrderBy(x => x.Key))
             {
                 M(enmMessageType.Info, $"{alias.Key} = {alias.Value}");
             }
@@ -888,7 +934,7 @@ namespace IGSB
         {
             var retval = false;
 
-            if (json != null)
+            if (json != null && json.Response != null)
             {
                 if (!json.Response.ContainsKey("errorCode"))
                 {
@@ -999,6 +1045,7 @@ namespace IGSB
             if (IsOk(open))
             {
                 M(enmMessageType.Info, "Alias        | Epic                     | Size | Opened              | Direction | DealId               | Reference            | Currency | Level");
+                M(enmMessageType.Info, "-------------+--------------------------+------+---------------------+-----------+----------------------+----------------------+----------+---------------------");
 
                 foreach (var position in open.Response["positions"])
                 {
@@ -1007,7 +1054,7 @@ namespace IGSB
             }
         }
 
-        public void Reload(string password, string watchFile)
+        public void ReloadWatchFile(string password, string watchFile)
         {
             Authenticate(null, null, watchFile, password);
         }
@@ -1052,13 +1099,29 @@ namespace IGSB
             else R("NO_SCHEMA");
         }
 
-        public void Schema()
+        public void Schemas()
         {
             foreach (var schema in IGClient.WatchFile.Schemas)
             {
                 M(enmMessageType.Info, $"{schema.SchemaName} active={schema.IsActive.ToString().ToLower()}");
             }
         }
+
+        //public WatchFile.Schema GetSchema(string schemaName)
+        //{
+        //    WatchFile.Schema retval = null;
+
+        //    foreach (var schema in IGClient.WatchFile.Schemas)
+        //    {
+        //        if (schema.SchemaName.ToLower() == schemaName.ToLower())
+        //        {
+        //            retval = schema;
+        //            break;
+        //        }
+        //    }
+
+        //    return retval;
+        //}
 
         public void SchemaActivate(string schema, bool activate)
         {
@@ -1089,12 +1152,13 @@ namespace IGSB
 
                 if (IsOk(transactions))
                 {
-                    M(enmMessageType.Info, "Description                             | Profit         | Type    | Date       | DealId                                     | Size");
+                    M(enmMessageType.Info, "Description                                  | Profit         | Type    | Date    | DealId                                     | Size");
+                    M(enmMessageType.Info, "---------------------------------------------+----------------+---------+---------+--------------------------------------------+---------");
 
                     foreach (var transaction in transactions.Response["transactions"])
                     {
                         var profit = transaction["profitAndLoss"].ToString().Substring(1); //, transaction["profitAndLoss"].ToString().ToString().Length - 1);
-                        M(enmMessageType.Info, $"{transaction["instrumentName"].ToString(),-40}  {String.Format("{0:0.00}", profit),-15}  {transaction["transactionType"]}      {transaction["date"].ToString():s}     {transaction["reference"],-43}  {transaction["size"].ToString():N1}");
+                        M(enmMessageType.Info, $"{transaction["instrumentName"].ToString(),-45}  {String.Format("{0:0.00} {1}", profit, CurrencySymbol),14}   {transaction["transactionType"]}      {DateTime.Parse(transaction["date"].ToString()).ToString(ListDateFormat)}     {transaction["reference"],-43}  {transaction["size"].ToString():N1}");
                     }
                 }
             } else M(enmMessageType.Error, "ERROR, 100 days or less");
@@ -1107,6 +1171,7 @@ namespace IGSB
             if (IsOk(search))
             {
                 M(enmMessageType.Info, "Epic                     | Name");
+                M(enmMessageType.Info, "-------------------------+-----------------------------------------");
 
                 foreach (var found in search.Response["markets"])
                 {
@@ -1132,10 +1197,15 @@ namespace IGSB
 
         public void Process(string direction, string instrument)
         {
-            Process(direction, instrument, string.Empty, 0d);
+            Process(direction, instrument, 0d, string.Empty);
         }
 
-        public void Process(string direction, string instrument, string currency, double size)
+        public void Process(string direction, string instrument, double size)
+        {
+            Process(direction, instrument, size, string.Empty);
+        }
+
+        public void Process(string direction, string instrument, double size, string currency)
         {
             currency = currency.ToUpper();
             direction = direction.ToUpper();
@@ -1173,68 +1243,76 @@ namespace IGSB
             }
         }
 
-        public void Help()
+        public void Help(string search)
         {
-            M(enmMessageType.Info, "date = Todays date (/dt)"); 
-            M(enmMessageType.Info, "closeall = Close ALL open positions (/ca)");
-            M(enmMessageType.Info, "close <dealId> = Close a specific position using its dealId (/cd)");
-            M(enmMessageType.Info, "model load <model> = Load specific model (/ml)");
-            M(enmMessageType.Info, "model delete <model|wildcards> = Delete specific model (/md)");
-            M(enmMessageType.Info, "model copy <model> <newmodel> = Copy specific model (/mc)");
-            M(enmMessageType.Info, "model rename <model> <newmodel> = Rename model (/mr)");
-            M(enmMessageType.Info, "model info [<schema|wildcards>] = Get additional information for models (/mi)");
-            M(enmMessageType.Info, "model bin = Close currently loaded model (/mb)");
-            M(enmMessageType.Info, "model save <model> = Save current model to specific model name (/ms)");
-            M(enmMessageType.Info, "model = Lists all models (/m)");
-            M(enmMessageType.Warn, "train info <dataset> = Display last training results for dataset (/ti)");
-            M(enmMessageType.Info, "train <dataset> <predict> <predictrange> [columns|-c] = Train model from combinations in dataset to predict a specific column, -c uses all columns in dataset only (/t)");
-            M(enmMessageType.Info, "eval <dataset> = Evaluate and check your predictions using current model and specific dataset (/e)");
-            M(enmMessageType.Info, "run <dataset> = Run through a simulated dataset using current model (/e)");
-            M(enmMessageType.Info, "begin = Begin collection of data (/bc)");
-            M(enmMessageType.Info, "end = End collection of data (/ec)");
-            M(enmMessageType.Info, "info [<days>] = Display todays transactions or transaction for last number of days, max 100 (/i)");
-            M(enmMessageType.Info, "dataset save <dataset> [-d] [-a] = Save dataset for specific schema, -d stops automatic date/time naming, -a includes hidden columns (/ds)");
-            M(enmMessageType.Info, "dataset delete <dataset|wildcards> = Delete dataset schema (/dd)");
-            M(enmMessageType.Info, "dataset copy <dataset> <newdataset> = Copy dataset schema (/dc)");
-            M(enmMessageType.Info, "dataset rename <dataset> <newdataset> = Rename dataset schema (/dr)");
-            M(enmMessageType.Info, "dataset info [<dataset|wildcards>] = Get additional information for schema (/di)");
-            M(enmMessageType.Info, "dataset headings [<dataset|wildcards>] = Get column information for schema (/dh)");
-            M(enmMessageType.Info, "dataset = List all dataset schemas (/d)");
-            M(enmMessageType.Info, "open = Display all current open positions (/o)");
-            M(enmMessageType.Info, "search <value> = Locate an instrument name and return all matches (/se)");
-            M(enmMessageType.Info, "summary = Count of values stored across all schemas (/su)");
-            M(enmMessageType.Info, "buy <instrument> <size> <currency> = Buy a specific epic (/b)");
-            M(enmMessageType.Info, "buy <instrument> (/b)");
-            M(enmMessageType.Info, "sell <instrument> <size> <currency> = Sell a specific epic (/s)");
-            M(enmMessageType.Info, "sell <instrument> = Sell a specific instrument (/s)");
-            M(enmMessageType.Info, "get <instrument> = Get details on a specific instrument (/g)");
-            M(enmMessageType.Info, "cls = Clear screen (/cs)");
-            M(enmMessageType.Info, "> = Show continuous subscription");
-            M(enmMessageType.Info, ">> <schema> [-a] = Show continuous dataset for specific schema, -a include all columns");
-            M(enmMessageType.Info, ">>> <schema> = Show continuous prediction for specific schema");
-            M(enmMessageType.Info, "type <schema> <rows> [-a] = Type out last rows, -a include all columns (/ty)");
-            M(enmMessageType.Info, "watch = Display watch file details (/w)");
-            M(enmMessageType.Info, "client = Display client connection details (/cl)");
-            M(enmMessageType.Info, "empty <schema> = Clear all captured records for a schema (/em)");
-            M(enmMessageType.Info, "reload <password> [watchfilepath] = Reload a watch file or load a new watch file (/r)");
-            M(enmMessageType.Info, "filter [<text>] = Filter continuous list by specific text, or clear existing filter (/f)");
-            M(enmMessageType.Info, "passwd <existingpassword> <newpassword> = Change password for settings and source (/p)");
-            M(enmMessageType.Info, "exit = Exit application (/x)");
-            M(enmMessageType.Info, "alias = List of aliases (/a)");
-            M(enmMessageType.Info, "alias set <alias> <value> -r = Change a value for an alias in the current watch file, -r specifies that you reload the watch file (/as)");
-            M(enmMessageType.Info, "log = List all log files (/l)");
-            M(enmMessageType.Info, "log type <lines> <logfile> = Type last specified number of lines (max 250) of specified log file (/lt)");
-            M(enmMessageType.Info, "log delete <logfile|wildcards> = Delete a specific log file (/ld)");
-            M(enmMessageType.Info, "log copy <logfile> <newlogfile> = Copy a specific log file (/lc)");
-            M(enmMessageType.Info, "log rename <logfile> <newlogfile> = Rename a specific log file (/lr)");
-            M(enmMessageType.Info, "log info [<logfile|wildcards>] = Get additional information for log files (/li)");
-            M(enmMessageType.Info, "merge <dataset> <schema> <newdataset> = Merge existing dataset with schema to product new dataset (/m)");
-            M(enmMessageType.Info, "schema = List all schemas and show current details (/sc)");
-            M(enmMessageType.Info, "schema +a <schema> = Activate a schema to allow it to capture incoming values (/sc+)");
-            M(enmMessageType.Info, "schema -a <schema> = InActivate a schema to stop it capturing incoming values (/sc-)");
-            M(enmMessageType.Info, "$ = List all short codes");
-            M(enmMessageType.Info, "$s = Add or update a short code");
-            M(enmMessageType.Info, "$r = Remove a short code");
+            var help = new List<string>();
+
+            help.Add("date = Todays date (/dt)");
+            help.Add("closeall = Close ALL open positions (/ca)");
+            help.Add("close <dealId> = Close a specific position using its dealId (/cd)");
+            help.Add("model load <model> = Load specific model (/ml)");
+            help.Add("model delete <model|wildcards> = Delete specific model (/md)");
+            help.Add("model copy <model> <newmodel> = Copy specific model (/mc)");
+            help.Add("model rename <model> <newmodel> = Rename model (/mr)");
+            help.Add("model info [<schema|wildcards>] = Get additional information for models (/mi)");
+            help.Add("model bin = Close currently loaded model (/mb)");
+            help.Add("model save <model> = Save current model to specific model name (/ms)");
+            help.Add("model = Lists all models (/m)");
+            help.Add("train info <dataset> = Display last training results for dataset (/ti)");
+            help.Add("train <dataset> <predict> <predictrange> [columns|-c] = Train model from combinations in dataset to predict a specific column, -c uses all columns in dataset only (/t)");
+            help.Add("eval <dataset> = Evaluate and check your predictions using current model and specific dataset (/e)");
+            help.Add("run <dataset> = Run through a simulated dataset using current model (/e)");
+            help.Add("begin = Begin collection of data (/bc)");
+            help.Add("end = End collection of data (/ec)");
+            help.Add("info [<days>] = Display todays transactions or transaction for last number of days, max 100, default 1 (/i)");
+            help.Add("dataset save <schema> [-d] [-a] = Save dataset for specific schema, -d stops automatic date/time naming, -a includes hidden columns (/ds)");
+            help.Add("dataset delete <dataset|wildcards> = Delete dataset (/dd)");
+            help.Add("dataset copy <dataset> <newdataset> = Copy dataset (/dc)");
+            help.Add("dataset rename <dataset> <newdataset> = Rename dataset (/dr)");
+            help.Add("dataset info [<dataset|wildcards>] = Get additional information for dataset (/di)");
+            help.Add("dataset headings [<dataset|wildcards>] = Get column information for dataset (/dh)");
+            help.Add("dataset = List all datasets (/d)");
+            help.Add("open = Display all current open positions (/o)");
+            help.Add("search <value> = Locate an instrument name and return all matches (/se)");
+            help.Add("summary = Count of values stored across all schemas (/su)");
+            help.Add("buy <instrument> <size> [currency] = Buy a specific instrument or epic (/b)");
+            help.Add("buy <instrument> = Buy a specific instrument or epic (/b)");
+            help.Add("sell <instrument> <size> [currency] = Sell a specific instrument or epic (/s)");
+            help.Add("sell <instrument> = Sell a specific instrument or epic (/s)");
+            help.Add("get <instrument> = Get details on a specific instrument (/g)");
+            help.Add("cls = Clear screen (/cs)");
+            help.Add("> = Show continuous subscription");
+            help.Add(">> <schema> [-a] = Show continuous dataset for specific schema, -a include all columns");
+            help.Add(">>> <schema> = Show continuous prediction for specific schema");
+            help.Add("type <schema> <rows> [-a] = Type out last COMPLETED rows, -a include all columns (/ty)");
+            help.Add("watch = Display watch file details (/w)");
+            help.Add("client = Display client connection details (/cl)");
+            help.Add("empty <schema> = Clear all captured records for a schema (/em)");
+            help.Add("reload [<password> [<watchfilepath>]] = Reload a watch file or load a new watch file (/r)");
+            help.Add("filter [<text>] = Filter continuous list by specific text, or clear existing filter (/f)");
+            help.Add("passwd <currentpassword> <newpassword> = Change current password for settings and source (/p)");
+            help.Add("exit = Exit application (/x)");
+            help.Add("alias = List of aliases (/a)");
+            help.Add("alias set <alias> <value> = Change a value for an alias in the current watch file");
+            help.Add("alias delete <alias> = Delete an alias from the current watch file");
+            help.Add("log = List all log files (/l)");
+            help.Add("log type <lines> <logfile> = Type last specified number of lines (max 250) of specified log file (/lt)");
+            help.Add("log delete <logfile|wildcards> = Delete a specific log file (/ld)");
+            help.Add("log copy <logfile> <newlogfile> = Copy a specific log file (/lc)");
+            help.Add("log rename <logfile> <newlogfile> = Rename a specific log file (/lr)");
+            help.Add("log info [<logfile|wildcards>] = Get additional information for log files (/li)");
+            help.Add("merge <dataset> <schema> <newdataset> = Merge existing dataset with schema to product new dataset (/m)");
+            help.Add("schema = List all schemas and show current details (/sc)");
+            help.Add("schema +a <schema> = Activate a schema to allow it to capture incoming values (/sc+)");
+            help.Add("schema -a <schema> = InActivate a schema to stop it capturing incoming values (/sc-)");
+            help.Add("$ = List all short codes");
+            help.Add("$s = Set a short code i.e. add or update");
+            help.Add("$d = Delete a short code");
+
+            foreach (var line in help.OrderBy(x => x))
+            {
+                if (String.IsNullOrEmpty(search) || line.ToLower().Contains(search.ToLower())) M(enmMessageType.Info, line);
+            }
         }
 
         public void InfoDataSet(string schema)
@@ -1245,16 +1323,18 @@ namespace IGSB
 
             if (schemas.Length > 0)
             {
+                M(enmMessageType.Info, "Name                       | Size      | Lines     | Columns | Updated");
+                M(enmMessageType.Info, "---------------------------+-----------+-----------+---------+--------------");
+
                 foreach (var x in schemas)
                 {
                     var info = new FileInfo(x);
                     var lines = File.ReadLines(x).Count();
-                    //var heading = File.ReadLines(x).First();
                     var heading = File.ReadLines(x).Skip(1).First();
 
                     var columnCount = heading.Split(",").Length;
 
-                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10} line{(lines > 1 ? "s" : " ")}  {columnCount, 3} column{(columnCount > 1 ? "s" : " ")}   {info.LastWriteTimeUtc}");
+                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30), -30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))), 5}k  {lines, 10}  {columnCount, 3}        {info.LastWriteTimeUtc.ToString(ShortDateFormat)}");
                 }
             }
             else R("NO_DATASET");
@@ -1291,11 +1371,16 @@ namespace IGSB
 
             if (schemas.Length > 0)
             {
-                foreach (var x in schemas)
+                var confirm = (schemas.Length == 1 || CC($"{schemas.Length} datasets found, Are You Sure (Y/n)? ", 'Y'));
+
+                if (confirm)
                 {
-                    File.Delete(x);
-                    var schemaName = x.Substring(2, x.Length - 2 - 4);
-                    M(enmMessageType.Info, $"Deleted dataset [{schemaName}]");
+                    foreach (var x in schemas)
+                    {
+                        File.Delete(x);
+                        var schemaName = x.Substring(2, x.Length - 2 - 4);
+                        M(enmMessageType.Info, $"Deleted dataset [{schemaName}]");
+                    }
                 }
             }
             else R("NO_DATASET");
@@ -1339,6 +1424,8 @@ namespace IGSB
         {
             var header = string.Empty;
 
+            header += "timestamp";
+
             foreach (var instrument in schema.SchemaInstruments)
             {
                 if ((instrument.IsColumn || includeAllColumns) && (!includePredicted || !instrument.IsSignal))
@@ -1379,7 +1466,6 @@ namespace IGSB
 
                     foreach (var record in schemaObj.CodeLibrary.Values)
                     {
-                        
                         var complete = !record.Values.Any(x => string.IsNullOrEmpty(x.Value));
 
                         if (!record.Values["completed"].Contains("X")) //complete) // && 
@@ -1474,16 +1560,18 @@ namespace IGSB
 
             if (logFiles.Length > 0)
             {
+                M(enmMessageType.Info, "Name                       | Size      | Lines     | Updated");
+                M(enmMessageType.Info, "---------------------------+-----------+-----------+--------------");
+
                 foreach (var x in logFiles)
                 {
                     var info = new FileInfo(x);
                     var lines = File.ReadLines(x).Count();
-                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30),-30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))),5}k  {lines,10} line{(lines > 1 ? "s" : " ")}   {info.CreationTimeUtc}");
+                    M(enmMessageType.Info, $"{x.Substring(2, x.Length - 2 - 4).PadRight(30),-30}  {string.Format("{0:0}", (info.Length < 1024 ? 1 : (info.Length / 1024))),5}k  {lines,10}   {info.CreationTimeUtc.ToString(ShortDateFormat)}");
                 }
             }
             else R("NO_LOGFILE");
         }
-
 
         public void DeleteLogFile(string logFile)
         {
@@ -1491,11 +1579,16 @@ namespace IGSB
 
             if (logfiles.Length > 0)
             {
-                foreach (var x in logfiles)
+                var confirm = (logfiles.Length == 1 || CC($"{logfiles.Length} logs found, Are You Sure (Y/n)? ", 'Y'));
+
+                if (confirm)
                 {
-                    File.Delete(x);
-                    var logFileName = x.Substring(2, x.Length - 2 - 4);
-                    M(enmMessageType.Info, $"Deleted log file [{logFileName}]");
+                    foreach (var x in logfiles)
+                    {
+                        File.Delete(x);
+                        var logFileName = x.Substring(2, x.Length - 2 - 4);
+                        M(enmMessageType.Info, $"Deleted log file [{logFileName}]");
+                    }
                 }
             }
             else R("NO_LOGFILE");
@@ -1567,7 +1660,7 @@ namespace IGSB
             else R("NO_LOGFILE");
         }
 
-        public void SetAlias(string watchFile, string key, string value)
+        public void DeleteAlias(string watchFile, string key)
         {
             JObject watchFileJson;
 
@@ -1581,9 +1674,46 @@ namespace IGSB
             {
                 if (alias["alias"].ToString().Equals(key))
                 {
+                    alias.Remove();
+                    break;
+                }
+            }
+
+            using (StreamWriter file = File.CreateText(watchFile))
+            using (JsonTextWriter writer = new JsonTextWriter(file))
+            {
+                watchFileJson.WriteTo(writer);
+            }
+
+            R("RELOAD_WATCH");
+        }
+
+        public void SetAlias(string watchFile, string key, string value)
+        {
+            JObject watchFileJson;
+
+            using (StreamReader file = File.OpenText(watchFile))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                watchFileJson = (JObject)JToken.ReadFrom(reader);
+            }
+
+            bool found = false;
+
+            foreach (JObject alias in watchFileJson["alias"])
+            {
+                if (alias["alias"].ToString().Equals(key))
+                {
+                    found = true;
                     alias["name"] = value;
                     break;
                 }
+            }
+
+            if (!found)
+            {
+                var alias = JObject.Parse($"{{ \"name\": \"{key}\", \"alias\": \"{value}\"}}");
+                watchFileJson["alias"].First.AddAfterSelf(alias);
             }
 
             using (StreamWriter file = File.CreateText(watchFile))
@@ -1668,7 +1798,9 @@ namespace IGSB
                 watchFileJson = (JObject)JToken.ReadFrom(reader);
             }
 
-            foreach (JObject code in watchFileJson["shortcodes"])
+            var cmdList = ((JArray)watchFileJson["shortcodes"]).ToObject<List<JToken>>();
+
+            foreach (JObject code in cmdList.OrderBy(x => x["key"]).ToList())
             {
                 M(enmMessageType.Info, $"{code["key"]} = {code["value"]}");
             }
@@ -1695,6 +1827,71 @@ namespace IGSB
             }
 
             return retval;
+        }
+
+        public void FeedDataset(string dataset, string columnName)
+        {
+            var datasetFileName = $@".\{dataset}.csv";
+
+            if (File.Exists(datasetFileName))
+            {
+                var info = new FileInfo(datasetFileName);
+                var lines = File.ReadLines(datasetFileName);
+
+                if (lines.Count() > 0)
+                {
+                    var split = lines.ToList()[1].Split(',');
+                    var index = 0;
+                    var columnIndex = -1;
+                    var timestampIndex = -1;
+
+                    foreach (var column in split)
+                    {
+                        var tempColumn = column.ToLower();
+
+                        if (tempColumn.Equals(columnName.ToLower()))
+                        {
+                            columnIndex = index;
+                            break;
+                        }
+
+                        index++;
+                    }
+
+                    if (split[0].ToString().Equals("timestamp"))
+                    {
+                        timestampIndex = 0;
+                        M(enmMessageType.Info, $"Timestamp found");
+                    } else
+                        M(enmMessageType.Info, $"Timestamp not found");
+
+                    if (columnIndex >= 0)
+                        M(enmMessageType.Info, $"Column found");
+                    else
+                        M(enmMessageType.Error, $"Column not found");
+
+                    if (columnIndex >= 0)
+                    {
+                        var currentTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        var subscription = (IGSubscriptionListener)IGClient.LSC.Subscriptions[0].Listeners[0];
+
+                        for (var i = 2; i < lines.Count(); i++)
+                        {
+                            var line = lines.ElementAt(i);
+                            split = line.Split(',');
+
+                            M(enmMessageType.Info, $"{(timestampIndex == -1 ? currentTimestamp : long.Parse(split[timestampIndex]))} - {split[columnIndex]}");
+
+                            currentTimestamp = currentTimestamp + 1000;
+
+                            var changedFields = new Dictionary<string, string>();
+                            changedFields.Add(columnName, split[columnIndex]);
+
+                            subscription.ExecuteUpdate(currentTimestamp, columnName, changedFields);
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -15,5 +15,9 @@
       "key": "t1",
       "value": "train oscillator signal"
     }
-  ]
+  ],
+  "longdateformat": "MM/dd/yyyy HH:mm:ss",
+  "shortdateformat": "MM/dd HH:mm",
+  "listdateformat": "MM/dd",
+  "currencysymbol": "£"
 }

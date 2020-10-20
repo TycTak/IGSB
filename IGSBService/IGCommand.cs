@@ -116,9 +116,9 @@ namespace IGSB
             {
                 if (!retval.Response.ContainsKey("errorCode"))
                 { 
-                    var bid = double.Parse(retval.Response["snapshot"]["bid"].ToString() + "0");
-                    var offer = double.Parse(retval.Response["snapshot"]["offer"].ToString() + "0");
-                    var spread = Math.Round((offer - bid),2);
+                    var bid = double.Parse("0" + retval.Response["snapshot"]["bid"].ToString());
+                    var offer = double.Parse("0" + retval.Response["snapshot"]["offer"].ToString());
+                    var spread = Math.Round((offer - bid), 2);
                     var spreadPercentage = Math.Round(spread / ((spread + bid) / 2) * 100, 2);
 
                     retval.Response.Add(new JProperty("spread", spread.ToString()));

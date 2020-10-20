@@ -79,7 +79,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Info;Checking password strength.
+        ///   Looks up a localized string similar to Info;Checking password strength [{0}].
         /// </summary>
         internal static string CHECK_PASSWORD {
             get {
@@ -124,7 +124,16 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Info;Type &apos;help&apos; or &apos;/?&apos; for available commands.
+        ///   Looks up a localized string similar to Info;Encrypting settings file.
+        /// </summary>
+        internal static string ENCRYPTING_SETTINGS {
+            get {
+                return ResourceManager.GetString("ENCRYPTING_SETTINGS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Type &apos;help&apos;, &apos;/?&apos; or &apos;/? search&apos; for available commands.
         /// </summary>
         internal static string HELP {
             get {
@@ -241,11 +250,29 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Info;Password changed NB* You must now change the password you use to login.
+        /// </summary>
+        internal static string PASSWORD_CHANGED {
+            get {
+                return ResourceManager.GetString("PASSWORD_CHANGED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error;Password failed.
         /// </summary>
         internal static string PASSWORD_FAILED {
             get {
                 return ResourceManager.GetString("PASSWORD_FAILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Unable to change password.
+        /// </summary>
+        internal static string PASSWORD_NOT_CHANGED {
+            get {
+                return ResourceManager.GetString("PASSWORD_NOT_CHANGED", resourceCulture);
             }
         }
         
@@ -264,6 +291,24 @@ namespace IGSB {
         internal static string RESERVED_SHORTCODE {
             get {
                 return ResourceManager.GetString("RESERVED_SHORTCODE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Schema is already active.
+        /// </summary>
+        internal static string SCHEMA_ALREADY_ACTIVE {
+            get {
+                return ResourceManager.GetString("SCHEMA_ALREADY_ACTIVE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Schema is already inactive.
+        /// </summary>
+        internal static string SCHEMA_ALREADY_INACTIVE {
+            get {
+                return ResourceManager.GetString("SCHEMA_ALREADY_INACTIVE", resourceCulture);
             }
         }
         

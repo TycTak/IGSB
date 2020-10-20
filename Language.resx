@@ -124,7 +124,7 @@
     <value>Error;Cannot embed short codes within short codes</value>
   </data>
   <data name="CHECK_PASSWORD" xml:space="preserve">
-    <value>Info;Checking password strength</value>
+    <value>Info;Checking password strength [{0}]</value>
   </data>
   <data name="CONTINUOUS_DATASET" xml:space="preserve">
     <value>Info;DATASET, continuous display mode, filtered on [{0}] &gt;&gt;</value>
@@ -138,8 +138,11 @@
   <data name="DATASET_EMPTIED" xml:space="preserve">
     <value>Info;Dataset emptied</value>
   </data>
+  <data name="ENCRYPTING_SETTINGS" xml:space="preserve">
+    <value>Info;Encrypting settings file</value>
+  </data>
   <data name="HELP" xml:space="preserve">
-    <value>Info;Type 'help' or '/?' for available commands</value>
+    <value>Info;Type 'help', '/?' or '/? search' for available commands</value>
   </data>
   <data name="INACTIVATE_SCHEMA" xml:space="preserve">
     <value>Info;Schema has been made not active</value>
@@ -177,14 +180,26 @@
   <data name="PARAMETERS_OK" xml:space="preserve">
     <value>Info;Settings parameters ok</value>
   </data>
+  <data name="PASSWORD_CHANGED" xml:space="preserve">
+    <value>Info;Password changed NB* You must now change the password you use to login</value>
+  </data>
   <data name="PASSWORD_FAILED" xml:space="preserve">
     <value>Error;Password failed</value>
+  </data>
+  <data name="PASSWORD_NOT_CHANGED" xml:space="preserve">
+    <value>Error;Unable to change password</value>
   </data>
   <data name="RELOAD_WATCH" xml:space="preserve">
     <value>Error;You must reload watch file to see changes</value>
   </data>
   <data name="RESERVED_SHORTCODE" xml:space="preserve">
     <value>Error;Reserved shortcode, you cannot assign anything to that code</value>
+  </data>
+  <data name="SCHEMA_ALREADY_ACTIVE" xml:space="preserve">
+    <value>Error;Schema is already active</value>
+  </data>
+  <data name="SCHEMA_ALREADY_INACTIVE" xml:space="preserve">
+    <value>Error;Schema is already inactive</value>
   </data>
   <data name="START" xml:space="preserve">
     <value>Info;Type 'begin' or '/bc' to begin collecting data</value>

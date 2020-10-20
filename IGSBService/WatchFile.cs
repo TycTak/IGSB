@@ -17,9 +17,6 @@ namespace IGSB
 
         public class Schema
         {
-            //"unit": "ticks",
-            //"unitvalue": "3",
-
             public ICodeLibrary CodeLibrary { get; set; }
 
             public Dictionary<string, string> Settings { get; set; }
@@ -45,6 +42,7 @@ namespace IGSB
                 capture,
                 transform
             }
+
             public enum enmUnit
             {
                 ticks,
@@ -64,8 +62,6 @@ namespace IGSB
             public bool IsNewRecordEvent { get; set; }
 
             public bool IsColumn { get; set; }
-
-            //public bool IsPredict { get; set; }
 
             public bool IsSignal { get; set; }
 
@@ -251,10 +247,15 @@ namespace IGSB
 
                             if (!string.IsNullOrEmpty(schemaInstrument.Transform))
                             {
+                                var transform = schemaInstrument.Transform.Split(',');
+
+                                var foundDataType = Enum.IsDefined(typeof(enmDataType), transform[transform.Length - 1]);
+                                var dataType = (foundDataType ? (enmDataType)Enum.Parse(typeof(enmDataType), transform[transform.Length - 1]) : schemaInstrument.DataType);
+
                                 SchemaInstrument transformInstrument = new SchemaInstrument()
                                 {
                                     IsColumn = schemaInstrument.IsColumn,
-                                    DataType = schemaInstrument.DataType,
+                                    DataType = dataType,
                                     Key = $"{schemaInstrument.Key}_t",
                                     IsSignal = schemaInstrument.IsSignal,
                                     Settings = schemaInstrument.Settings,
@@ -263,6 +264,7 @@ namespace IGSB
 
                                 schemaInstrument.IsSignal = false;
                                 schemaInstrument.IsColumn = false;
+                                schemaInstrument.Transform = (foundDataType ? string.Join(',', transform, 0, transform.Length - 1) : schemaInstrument.Transform);
 
                                 watchSchema.SchemaInstruments.Add(transformInstrument);
                             }

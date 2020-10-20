@@ -454,7 +454,7 @@ namespace IGSB
                                 min = Math.Min(val, min);
                             }
 
-                            var latest = GetDouble(1, localFormula, selectedIndex, values);
+                            var latest = GetDouble(selectedIndex.Count - 1, localFormula, selectedIndex, values);
 
                             var stoch = ((latest - min) / (max - min));
 

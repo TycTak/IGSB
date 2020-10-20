@@ -96,7 +96,7 @@ namespace IGSB
                     //var temp = schemaInstruments.FindAll(x => x.Key == isNewRecordEventColumnName);
                     //var key = $"{name}_{field}";
                     var schemaInstruments = instrumentKeyed[this.isNewRecordEventKeyName];
-                    CreateNewRecord(schemaInstruments, null);
+                    CreateNewRecord(0, schemaInstruments, null);
                 }
             }
             //Console.WriteLine("The Elapsed event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
@@ -125,16 +125,20 @@ namespace IGSB
             var message = string.Empty;
             var predictValues = new Dictionary<string, string>();
 
+            message += $"{record.Time}";
+
             foreach (var value in record.Values)
             {
                 var instrument = instruments.Find(x => x.Key.Equals(value.Key));
 
                 if (instrument != null && (((instrument.IsColumn || includeAllColumns) && !includePrediction) || (!instrument.IsSignal && includePrediction && instrument.IsColumn)))
                 {
-                    message += (string.IsNullOrEmpty(message) ? "" : ", ");
+                    message += (string.IsNullOrEmpty(message) ? "" : ",");
 
-                    if (value.Value == null)
+                    if (value.Value == null && !instrument.IsFuture)
                         message += string.Empty;
+                    if (value.Value == null && instrument.IsFuture)
+                        message += "-1";
                     else if (instrument.DataType == enmDataType.@double)
                         message += (IsNumeric(value.Value) ? $"{string.Format("{0:0.00}", double.Parse(value.Value))}" : "0.00");
                     else if (instrument.DataType == enmDataType.@double6)
@@ -159,9 +163,6 @@ namespace IGSB
 
                 var prediction = IGClient.ML.Predict(tempRecord);
 
-                //TODO Beep when a buy or sell signal is found
-                //B(enmBeep.OneShort);
-
                 if (prediction != null) message += (string.IsNullOrEmpty(message) ? "" : ", ") + $"p={string.Format("{0:0.000}", prediction.Label)}";
             }
 
@@ -170,7 +171,7 @@ namespace IGSB
 
         private double tempValue = 0d;
 
-        public bool Push(string name, string field, string value)
+        public bool Push(long timeStamp, string name, string field, string value)
         {
             lock (lockObject)
             {
@@ -179,18 +180,18 @@ namespace IGSB
 
                 if (Values.Count > 0)
                 {
-                    CreateNewRecord(schemaInstruments, value);
+                    CreateNewRecord(timeStamp, schemaInstruments, value);
                 }
             }
 
             return true;
         }
 
-        private void CreateNewRecord(List<SchemaInstrument> schemaInstruments, string value)
+        private void CreateNewRecord(long timeStamp, List<SchemaInstrument> schemaInstruments, string value)
         {
             var currentRecord = Values.Last();
 
-            var milliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            var milliseconds = (timeStamp <= 0 ? DateTimeOffset.Now.ToUnixTimeMilliseconds() : timeStamp);
             currentRecord.Time = milliseconds;
 
             if (!string.IsNullOrEmpty(value))

@@ -8,7 +8,7 @@ namespace IGSB
     {
         void Initialise(Schema schema);
 
-        bool Push(string name, string field, string value);
+        bool Push(long timeStamp, string name, string field, string value);
 
         public List<ValueInstrument> Values { get; set; }
 

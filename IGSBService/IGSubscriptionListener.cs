@@ -1,6 +1,7 @@
 ﻿using com.lightstreamer.client;
 using System;
 using static IGSB.IGClient;
+using System.Collections.Generic;
 
 namespace IGSB
 {
@@ -40,33 +41,64 @@ namespace IGSB
             M(enmMessageType.Debug, String.Format("IGSubscriptionListener.onItemLostUpdates {0} - {1} - {2}", itemName, itemPos, lostUpdates));
         }
 
+        public void ExecuteUpdate(long timeStamp, string itemName, IDictionary<string, string> changeFields)
+        {
+            foreach (var changed in changeFields)
+            {
+                for (var i = 0; i < watchList.Schemas.Count; i++)
+                {
+                    if (watchList.Schemas[i].IsActive)
+                    {
+                        var pushed = watchList.Schemas[i].CodeLibrary.Push(timeStamp, itemName, changed.Key, changed.Value);
+
+                        if (pushed && IGClient.StreamDisplay == enmContinuousDisplay.Subscription)
+                        {
+                            var message = String.Format("{0} {1}:{2}:{3}", watchList.Schemas[i].SchemaName, itemName, changed.Key, changed.Value);
+
+                            if (string.IsNullOrEmpty(IGClient.Filter) || message.ToLower().Contains(IGClient.Filter.ToLower()))
+                            {
+                                M(enmMessageType.Info, message);
+                            }
+                        }
+
+                        //M(enmMessageType.Debug, String.Format("IGClientListener.onItemUpdate {0} {1} {2} {3}", pushed, itemUpdate.ItemName, changed.Key, changed.Value));
+                    }
+                }
+            }
+        }
+
         public void onItemUpdate(ItemUpdate itemUpdate)
         {
             if (!IGClient.Pause)
             {
-                foreach (var changed in itemUpdate.ChangedFields)
-                {
-                    for (var i = 0; i < watchList.Schemas.Count; i++)
-                    {
-                        if (watchList.Schemas[i].IsActive)
-                        {
-                            var pushed = watchList.Schemas[i].CodeLibrary.Push(itemUpdate.ItemName, changed.Key, changed.Value);
-
-                            if (pushed && IGClient.StreamDisplay == enmContinuousDisplay.Subscription)
-                            {
-                                var message = String.Format("{0} {1}:{2}:{3}", watchList.Schemas[i].SchemaName, itemUpdate.ItemName, changed.Key, changed.Value);
-
-                                if (string.IsNullOrEmpty(IGClient.Filter) || message.ToLower().Contains(IGClient.Filter.ToLower()))
-                                {
-                                    M(enmMessageType.Info, message);
-                                }
-                            }
-
-                            //M(enmMessageType.Debug, String.Format("IGClientListener.onItemUpdate {0} {1} {2} {3}", pushed, itemUpdate.ItemName, changed.Key, changed.Value));
-                        }
-                    }
-                }
+                ExecuteUpdate(0, itemUpdate.ItemName, itemUpdate.ChangedFields);
             }
+
+            //if (!IGClient.Pause)
+            //{
+            //    foreach (var changed in itemUpdate.ChangedFields)
+            //    {
+            //        for (var i = 0; i < watchList.Schemas.Count; i++)
+            //        {
+            //            if (watchList.Schemas[i].IsActive)
+            //            {
+            //                var pushed = watchList.Schemas[i].CodeLibrary.Push(itemUpdate.ItemName, changed.Key, changed.Value);
+
+            //                if (pushed && IGClient.StreamDisplay == enmContinuousDisplay.Subscription)
+            //                {
+            //                    var message = String.Format("{0} {1}:{2}:{3}", watchList.Schemas[i].SchemaName, itemUpdate.ItemName, changed.Key, changed.Value);
+
+            //                    if (string.IsNullOrEmpty(IGClient.Filter) || message.ToLower().Contains(IGClient.Filter.ToLower()))
+            //                    {
+            //                        M(enmMessageType.Info, message);
+            //                    }
+            //                }
+
+            //                //M(enmMessageType.Debug, String.Format("IGClientListener.onItemUpdate {0} {1} {2} {3}", pushed, itemUpdate.ItemName, changed.Key, changed.Value));
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         public void onListenEnd(Subscription subscription)
