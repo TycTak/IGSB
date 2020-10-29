@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using static IGSB.BaseCodeLibrary;
+using IGSB;
 using static IGSB.IGClient;
 
 namespace ConsoleApp6ML.ConsoleApp
@@ -628,7 +628,7 @@ namespace ConsoleApp6ML.ConsoleApp
         //    else M(enmMessageType.Error, $"ERROR, no model found");
         //}
 
-        private void GetDataSet(string datasetFileName, out List<TextLoader.Column> dataColumns, out List<ValueInstrument> lines)
+        private void GetDataSet(string datasetFileName, out List<TextLoader.Column> dataColumns, out List<RecordInstrument> lines)
         {
             List<string> columns = GetColumns(datasetFileName, PredictColumn);
 
@@ -638,7 +638,7 @@ namespace ConsoleApp6ML.ConsoleApp
                 dataColumns.Add(new TextLoader.Column(columns[i].Split(";")[0], DataKind.Single, i));
             }
 
-            lines = new List<ValueInstrument>();
+            lines = new List<RecordInstrument>();
             using (var file = new System.IO.StreamReader(datasetFileName))
             {
                 var line = file.ReadLine();
@@ -650,7 +650,7 @@ namespace ConsoleApp6ML.ConsoleApp
 
                 while (!string.IsNullOrEmpty(line))
                 {
-                    var o = new ValueInstrument();
+                    var o = new RecordInstrument();
                     o.Values = new Dictionary<string, string>();
                     var values = line.Split(",");
 
@@ -748,7 +748,7 @@ namespace ConsoleApp6ML.ConsoleApp
                 if (File.Exists(datasetFileName))
                 {
                     List<TextLoader.Column> dataColumns;
-                    List<ValueInstrument> lines;
+                    List<RecordInstrument> lines;
 
                     GetDataSet(datasetFileName, out dataColumns, out lines);
 
@@ -831,7 +831,7 @@ namespace ConsoleApp6ML.ConsoleApp
                 if (File.Exists(datasetFileName))
                 {
                     List<TextLoader.Column> dataColumns;
-                    List<ValueInstrument> lines;
+                    List<RecordInstrument> lines;
 
                     GetDataSet(datasetFileName, out dataColumns, out lines);
 
@@ -997,7 +997,7 @@ namespace ConsoleApp6ML.ConsoleApp
             public float Label { get; set; }
         }
 
-        private Data GetData(ValueInstrument record)
+        private Data GetData(RecordInstrument record)
         {
             var retval = new Data();
             var dataType = typeof(Data);
@@ -1011,7 +1011,7 @@ namespace ConsoleApp6ML.ConsoleApp
             return retval;
         }
 
-        public Prediction Predict(ValueInstrument record)
+        public Prediction Predict(RecordInstrument record)
         {
             Prediction retval = null;
 

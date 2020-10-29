@@ -21,6 +21,7 @@ namespace IGSB
         public void onServerError(int errorCode, string errorMessage)
         {
             M(enmMessageType.Debug, String.Format("IGClientListener.onListenStart FAILED: {0} - {1}", errorCode, errorMessage));
+            M(enmMessageType.Error, String.Format("IGClientListener.onListenStart FAILED: {0} - {1}", errorCode, errorMessage));
         }
 
         public void onStatusChange(string status)

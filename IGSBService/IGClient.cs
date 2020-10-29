@@ -57,6 +57,7 @@ namespace IGSB
         public delegate void Response(string code, List<string> args = null);
         public delegate bool ConfirmText(string message, string accept);
         public delegate bool ConfirmChar(string message, char accept);
+        public delegate void TickTock();
         public delegate bool BreakProcess();
         public delegate void Beep();
 
@@ -73,17 +74,19 @@ namespace IGSB
             public DateTime Session { get; set; }
         }
 
-        static public void Initialise(Message msgDelegate, BreakProcess breakDelegate, Beep beepDelegate, Response responseDelegate, ConfirmText confirmDelegate, ConfirmChar characterDelegate)
+        static public void Initialise(Message msgDelegate, BreakProcess breakDelegate, Beep beepDelegate, Response responseDelegate, ConfirmText confirmDelegate, ConfirmChar characterDelegate, TickTock ticktockDelegate)
         {
             if (msgDelegate != null)
             {
                 M += msgDelegate;
                 BaseCodeLibrary.M += msgDelegate;
                 BaseCodeLibrary.B += beepDelegate;
+                BaseCodeLibrary.R += responseDelegate;
                 Commands.M += msgDelegate;
                 Commands.R += responseDelegate;
                 Commands.CT += confirmDelegate;
                 Commands.CC += characterDelegate;
+                Commands.TT += ticktockDelegate;
                 IGClientListener.M += msgDelegate;
                 IGSubscriptionListener.M += msgDelegate;
                 WatchFile.M += msgDelegate;

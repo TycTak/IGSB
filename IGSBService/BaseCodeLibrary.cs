@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Timers;
 using static IGSB.IGClient;
+using static IGSB.SchemaInstrument;
 using static IGSB.WatchFile;
-using static IGSB.WatchFile.SchemaInstrument;
 
 namespace IGSB
 {
@@ -17,32 +17,31 @@ namespace IGSB
         private List<SchemaInstrument> instruments;
         private List<SchemaInstrument> transformInstruments;
         private List<SchemaInstrument> schemaFormulas;
+        private List<SchemaInstrument> schemaCaptures;
         private List<SchemaInstrument> columns;
         private Timer timer;
         private enmUnit unit;
-        private int unitValue;
+        private double unitValue;
 
         private BaseFormulaLibrary formulaLib = new BaseFormulaLibrary();
 
-        private string completedDefaultValue;
+        private string CompletedDefaultValue;
         static readonly object lockObject = new object();
         private string isNewRecordEventColumnName;
         private string isNewRecordEventKeyName;
 
+        private enum enmActionType
+        {
+            Push,
+            TimedEvent
+        }
+
         static public event Message M;
+        static public event Response R;
         static public event Beep B;
 
-        public List<ValueInstrument> Values { get; set; } = new List<ValueInstrument>();
+        public List<RecordInstrument> Record { get; set; } = new List<RecordInstrument>();
         public static string Key { get; private set; }
-
-        public class ValueInstrument
-        {
-            public string Key { get; set; }
-
-            public long Time { get; set; }
-
-            public Dictionary<string, string> Values { get; set; }
-        }
 
         public void Initialise(Schema schema)
         {
@@ -54,8 +53,9 @@ namespace IGSB
             this.unit = schema.Unit;
             this.unitValue = schema.UnitValue;
             this.schemaFormulas = schema.SchemaInstruments.FindAll(x => x.Type == SchemaInstrument.enmType.formula);
+            this.schemaCaptures = schema.SchemaInstruments.FindAll(x => x.Type == SchemaInstrument.enmType.capture);
             this.columns = schema.SchemaInstruments.FindAll(x => x.Key != "completed" && !x.IsFuture);
-            this.completedDefaultValue = schema.SchemaInstruments.Find(x => x.Key == "completed").Value;
+            this.CompletedDefaultValue = schema.SchemaInstruments.Find(x => x.Key == "completed").Value;
             this.transformInstruments = schema.SchemaInstruments.FindAll(x => !string.IsNullOrEmpty(x.Transform));
             var temp = schema.SchemaInstruments.Single<SchemaInstrument>(x => x.IsNewRecordEvent);
             this.isNewRecordEventColumnName = temp.Key;
@@ -73,12 +73,12 @@ namespace IGSB
 
             Reset();
 
-            if (this.unit == enmUnit.seconds && this.unitValue >= 1) SetTimer(this.unitValue);
+            if (this.unit == enmUnit.seconds && this.unitValue > 0) SetTimer(this.unitValue);
         }
 
-        private void SetTimer(int seconds)
+        private void SetTimer(double seconds)
         {
-            var milliseconds = (seconds * 1000);
+            var milliseconds = (1000 * seconds);
 
             timer = new System.Timers.Timer(milliseconds);
 
@@ -93,23 +93,23 @@ namespace IGSB
             {
                 if (!IGClient.Pause)
                 {
-                    //var temp = schemaInstruments.FindAll(x => x.Key == isNewRecordEventColumnName);
-                    //var key = $"{name}_{field}";
+                    //TODO do all instruments???
                     var schemaInstruments = instrumentKeyed[this.isNewRecordEventKeyName];
-                    CreateNewRecord(0, schemaInstruments, null);
+                    CreateNewRecord(enmActionType.TimedEvent, 0, schemaInstruments, null);
+
+                    //Console.WriteLine("The Elapsed event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
                 }
             }
-            //Console.WriteLine("The Elapsed event was raised at {0:HH:mm:ss.fff}", e.SignalTime);
         }
 
-        private ValueInstrument NewRecord()
+        private RecordInstrument NewRecord()
         {
-            var valueInstrument = new ValueInstrument() { Values = new Dictionary<string, string>() };
+            var valueInstrument = new RecordInstrument() { Values = new Dictionary<string, string>() };
 
             foreach (var instrument in this.instruments)
             {
                 valueInstrument.Values.Add(instrument.Key, null);
-                if (instrument.Key == "completed") valueInstrument.Values["completed"] = completedDefaultValue;
+                if (instrument.Key == "completed") valueInstrument.Values["completed"] = CompletedDefaultValue;
             }
 
             return valueInstrument;
@@ -120,12 +120,12 @@ namespace IGSB
             return double.TryParse(value, out _);
         }
 
-        static public string GetDatasetRecord(ValueInstrument record, List<SchemaInstrument> instruments, bool includeAllColumns, bool includePrediction)
+        static public string GetDatasetRecord(RecordInstrument record, List<SchemaInstrument> instruments, bool includeAllColumns, bool includePrediction)
         {
             var message = string.Empty;
             var predictValues = new Dictionary<string, string>();
 
-            message += $"{record.Time}";
+            message += $"{record.Time},{record.TimeDiff}";
 
             foreach (var value in record.Values)
             {
@@ -159,7 +159,7 @@ namespace IGSB
 
             if (includePrediction && predictValues.Count > 0 && !record.Values["completed"].Contains("X"))
             {
-                var tempRecord = new ValueInstrument() { Key = record.Key, Time = record.Time, Values = predictValues };
+                var tempRecord = new RecordInstrument() { Key = record.Key, Time = record.Time, Values = predictValues };
 
                 var prediction = IGClient.ML.Predict(tempRecord);
 
@@ -169,7 +169,13 @@ namespace IGSB
             return message;
         }
 
-        private double tempValue = 0d;
+        private double TempTimeValue = 0d;
+
+        public bool CheckKeyExists(string name, string field)
+        {
+            var key = $"{name}_{field}";
+            return instrumentKeyed.ContainsKey(key);
+        }
 
         public bool Push(long timeStamp, string name, string field, string value)
         {
@@ -178,20 +184,22 @@ namespace IGSB
                 var key = $"{name}_{field}";
                 var schemaInstruments = instrumentKeyed[key];
 
-                if (Values.Count > 0)
+                if (Record.Count > 0)
                 {
-                    CreateNewRecord(timeStamp, schemaInstruments, value);
+                    CreateNewRecord(enmActionType.Push, timeStamp, schemaInstruments, value);
                 }
             }
 
             return true;
         }
 
-        private void CreateNewRecord(long timeStamp, List<SchemaInstrument> schemaInstruments, string value)
+        private void CreateNewRecord(enmActionType actionType, long timeStamp, List<SchemaInstrument> schemaInstruments, string value)
         {
-            var currentRecord = Values.Last();
-
+            var currentRecord = Record.Last();
             var milliseconds = (timeStamp <= 0 ? DateTimeOffset.Now.ToUnixTimeMilliseconds() : timeStamp);
+
+            var previousRecord = Record.ElementAt(Record.Count == 1 ? 0 : Record.Count - 2);
+            currentRecord.TimeDiff = (previousRecord.Time == 0 ? 0 : milliseconds - previousRecord.Time);
             currentRecord.Time = milliseconds;
 
             if (!string.IsNullOrEmpty(value))
@@ -204,28 +212,33 @@ namespace IGSB
 
             foreach (var formula in schemaFormulas)
             {
-                formulaLib.ExecuteMethod(formula, Values);
+                formulaLib.ExecuteMethod(formula, Record);
             }
 
-            var isNewRecord = schemaInstruments.Exists(x => x.Key == isNewRecordEventColumnName);
+            var isNewRecord = false;
             var isCorrect = false;
 
             if (this.unit == enmUnit.ticks)
             {
-                tempValue += 1;
-                if (tempValue == this.unitValue)
+                isNewRecord = schemaInstruments.Exists(x => x.Key == isNewRecordEventColumnName);
+
+                TempTimeValue += 1;
+                if (TempTimeValue >= this.unitValue)
                 {
                     isCorrect = true;
-                    tempValue = 0;
+                    TempTimeValue = 0;
                 }
             }
             else if (this.unit == enmUnit.seconds)
             {
+                isNewRecord = actionType == enmActionType.TimedEvent;
+                isCorrect = true;
+
                 var temp = DateTimeOffset.Now.ToUnixTimeSeconds();
-                if ((temp - tempValue) > this.unitValue)
+                if ((temp - TempTimeValue) > this.unitValue || timeStamp != 0)
                 {
                     isCorrect = true;
-                    tempValue = DateTimeOffset.Now.ToUnixTimeSeconds();
+                    TempTimeValue = DateTimeOffset.Now.ToUnixTimeSeconds();
                 }
             }
 
@@ -233,7 +246,7 @@ namespace IGSB
             {
                 foreach (var instrument in transformInstruments)
                 {
-                    formulaLib.TransformData(instrument, instruments, Values);
+                    formulaLib.TransformData(instrument, instruments, Record);
                 }
 
                 var regex = new Regex(Regex.Escape("X"));
@@ -262,18 +275,34 @@ namespace IGSB
                     if (string.IsNullOrEmpty(Filter) || message.ToLower().Contains(Filter.ToLower()))
                     {
                         M(enmMessageType.Info, message);
+                        //Console.Write($"\r{currentRecord.Values["offer"]}");
                     }
                 }
 
-                currentRecord = NewRecord();
-                Values.Add(currentRecord);
+                if (Record.Count > 0)
+                {
+                    var tempValues = new Dictionary<string, string>();
+                    foreach(var instrument in schemaCaptures)
+                    {
+                        tempValues.Add(instrument.Key, currentRecord.Values[instrument.Key]);
+                    }
+
+                    currentRecord = NewRecord();
+
+                    foreach(var tempValue in tempValues)
+                    {
+                        currentRecord.Values[tempValue.Key] = tempValue.Value;
+                    }
+
+                    Record.Add(currentRecord);
+                }
             }
         }
 
         public void Reset()
         {
-            Values.Clear();
-            Values.Add(NewRecord());
+            Record.Clear();
+            Record.Add(NewRecord());
         }
     }
 }

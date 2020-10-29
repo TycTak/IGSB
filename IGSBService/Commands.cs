@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using static IGSB.IGClient;
 
 namespace IGSB
@@ -15,6 +16,7 @@ namespace IGSB
         static public event Response R;
         static public event ConfirmText CT;
         static public event ConfirmChar CC;
+        static public event TickTock TT;
 
         static private bool DataCheck(string value, string validation)
         {
@@ -110,7 +112,7 @@ namespace IGSB
                 for (var i = args[0].Length; i >= 2; i--)
                 {
                     var check = args[0].Substring(0, i);
-                    if (cmds.Contains($"[{check}]") || i == 2)
+                    if (cmds.Contains($"[{check.ToLower()}]") || i == 2)
                     {
                         var len = (args[0].Length - (check.Length - 1));
                         var tmpArgs = new String[len + (args.Length - 1)];
@@ -151,18 +153,18 @@ namespace IGSB
                 {
                     case "":
                         break;
-                    case "$d":
+                    case "$-":
                         if (Validate("MS", cmdArgs))
                         {
                             var code = cmdArgs[1];
                             DeleteShortCode(IGClient.SettingsFile, code);
                         }
                         break;
-                    case "$s":
+                    case "$+":
                         if (Validate("MS;MS;OS;OS;OS;OS;OS", cmdArgs))
                         {
                             var code = cmdArgs[1];
-                            if ("sr".Contains(cmdArgs[1]) && code.Length == 1)
+                            if ("+-".Contains(cmdArgs[1]) && code.Length == 1)
                             {
                                 R("RESERVED_SHORTCODE");
                             }
@@ -203,7 +205,7 @@ namespace IGSB
                         break;
                     case "/fe":
                     case "feed":
-                        if (Validate("MS;MS", cmdArgs)) FeedDataset(cmdArgs[1], cmdArgs[2]);
+                        if (Validate("MS;MS;ON", cmdArgs)) FeedDataset(cmdArgs[1], cmdArgs[2], int.Parse((cmdArgs[3].Equals("0") ? "100" : cmdArgs[3])));
                         break;
                     case "/dt":
                     case "date":
@@ -215,7 +217,7 @@ namespace IGSB
                         break;
                     case "/ty":
                     case "type":
-                        if (Validate("MS;ON;O~^-a$", cmdArgs)) TypeOut(cmdArgs[1], 0, Convert.ToInt32(cmdArgs[2]), cmdArgs[3] == "-a");
+                        if (Validate("MS;ON;O~^-a|-r$;O~^-a|-r$", cmdArgs)) TypeOut(cmdArgs[1], 0, Convert.ToInt32(cmdArgs[2]), IsCode("-a", cmdArgs), IsCode("-r", cmdArgs));
                         break;
                     case "/r":
                     case "reload":
@@ -558,7 +560,7 @@ namespace IGSB
                                     break;
                                 case "s":
                                 case "save":
-                                    if (Validate("MS;MS;O~^-d|-a$;O~^-d|-a$", cmdArgs)) SaveDataSet(cmdArgs[2], (cmdArgs[3] == "-d" || cmdArgs[4] == "-d"), (cmdArgs[3] == "-a" || cmdArgs[4] == "-a"));
+                                    if (Validate("MS;MS;O~^-d|-a|-r$;O~^-d|-a|-r$;O~^-d|-a|-r$", cmdArgs)) SaveDataSet(cmdArgs[2], IsCode("-d", cmdArgs), IsCode("-a", cmdArgs), IsCode("-r", cmdArgs));
                                     break;
                                 default:
                                     R("UNKNOWN");
@@ -572,12 +574,30 @@ namespace IGSB
                         if (Validate("", cmdArgs)) GetClientDetails();
                         break;
                     default:
+                        Help(cmdArgs[0]);
                         R("UNKNOWN");
                         break;
                 }
             }
 
             return @continue;
+        }
+
+        private bool IsCode(string code, List<string> values)
+        {
+            var found = false;
+            code = code.ToLower();
+
+            for(var i = 0; i < values.Count(); i++)
+            {
+                if (values.ElementAt(i).ToLower().Equals(code))
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            return found;
         }
 
         public bool Authenticate(string settingsFile, string sourceKey, string watchFile, string password)
@@ -867,7 +887,7 @@ namespace IGSB
 
             foreach (var schema in IGClient.WatchFile.Schemas)
             {
-                valueCounts.Add(schema.SchemaName, schema.CodeLibrary.Values.Count());
+                valueCounts.Add(schema.SchemaName, schema.CodeLibrary.Record.Count());
             }
 
             if (valueCounts.Count > 0)
@@ -967,7 +987,7 @@ namespace IGSB
             for (var i = 0; i < IGClient.WatchFile.Schemas.Count; i++)
             {
                 var schema = IGClient.WatchFile.Schemas[i];
-                var formulae = schema.SchemaInstruments.FindAll(x => x.Type == WatchFile.SchemaInstrument.enmType.formula);
+                var formulae = schema.SchemaInstruments.FindAll(x => x.Type == SchemaInstrument.enmType.formula);
                 schemaNames += (string.IsNullOrEmpty(schemaNames) ? $"#{i}_{schema.SchemaName}" : $", #{i}_{schema.SchemaName}") + (schema.IsActive ? "_A" : "_I");
 
                 foreach (var formula in formulae)
@@ -1071,7 +1091,7 @@ namespace IGSB
             else R("NO_SCHEMA");
         }
 
-        public void TypeOut(string schema, int start = 1, int rows = 10, bool includeAllColumns = false)
+        public void TypeOut(string schema, int start, int rows, bool includeAllColumns, bool includeAllRows)
         {
             var schemaObj = GetSchema(schema);
 
@@ -1079,17 +1099,17 @@ namespace IGSB
             {
                 M(enmMessageType.Info, GetHeader(schemaObj, includeAllColumns));
 
-                var max = schemaObj.CodeLibrary.Values.Count;
+                var max = schemaObj.CodeLibrary.Record.Count;
                 start = (start <= 0 ? (max - Math.Min(rows, max) + 1) : start);
                 var end = Math.Min((start + rows), max);
 
                 for (var i = (start - 1); i < end; i++)
                 {
-                    var record = schemaObj.CodeLibrary.Values[i];
+                    var record = schemaObj.CodeLibrary.Record[i];
 
                     var complete = !record.Values.Any(x => string.IsNullOrEmpty(x.Value));
 
-                    if (complete)
+                    if (includeAllRows || complete)
                     {
                         var line = BaseCodeLibrary.GetDatasetRecord(record, schemaObj.SchemaInstruments, includeAllColumns, false);
                         M(enmMessageType.Info, line);
@@ -1243,7 +1263,7 @@ namespace IGSB
             }
         }
 
-        public void Help(string search)
+        public bool Help(string search)
         {
             var help = new List<string>();
 
@@ -1265,7 +1285,7 @@ namespace IGSB
             help.Add("begin = Begin collection of data (/bc)");
             help.Add("end = End collection of data (/ec)");
             help.Add("info [<days>] = Display todays transactions or transaction for last number of days, max 100, default 1 (/i)");
-            help.Add("dataset save <schema> [-d] [-a] = Save dataset for specific schema, -d stops automatic date/time naming, -a includes hidden columns (/ds)");
+            help.Add("dataset save <schema> [-d] [-a] [-r] = Save dataset for specific schema, -d stops automatic date/time naming, -a includes hidden columns, -r include all rows (/ds)");
             help.Add("dataset delete <dataset|wildcards> = Delete dataset (/dd)");
             help.Add("dataset copy <dataset> <newdataset> = Copy dataset (/dc)");
             help.Add("dataset rename <dataset> <newdataset> = Rename dataset (/dr)");
@@ -1306,13 +1326,16 @@ namespace IGSB
             help.Add("schema +a <schema> = Activate a schema to allow it to capture incoming values (/sc+)");
             help.Add("schema -a <schema> = InActivate a schema to stop it capturing incoming values (/sc-)");
             help.Add("$ = List all short codes");
-            help.Add("$s = Set a short code i.e. add or update");
-            help.Add("$d = Delete a short code");
+            help.Add("$+ = Set a short code i.e. add or update");
+            help.Add("$- = Delete a short code");
+            help.Add("feed <dataset> <column> <field> <item> = Feed the system with a previously saved dataset add to all schemas (/fe)");
 
             foreach (var line in help.OrderBy(x => x))
             {
                 if (String.IsNullOrEmpty(search) || line.ToLower().Contains(search.ToLower())) M(enmMessageType.Info, line);
             }
+
+            return (help.Count >= 0);
         }
 
         public void InfoDataSet(string schema)
@@ -1424,7 +1447,7 @@ namespace IGSB
         {
             var header = string.Empty;
 
-            header += "timestamp";
+            header += "timestamp,timediff";
 
             foreach (var instrument in schema.SchemaInstruments)
             {
@@ -1444,7 +1467,7 @@ namespace IGSB
             return retval;
         }
 
-        public void SaveDataSet(string dataset, bool noDateTimeNaming, bool includeAllColumns)
+        public void SaveDataSet(string dataset, bool noDateTimeNaming, bool includeAllColumns, bool includeAllRows)
         {
             var alreadyPaused = IGClient.Pause;
             var outputSchemaName = (noDateTimeNaming ? $"{dataset}" : $"{dataset}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}");
@@ -1459,20 +1482,21 @@ namespace IGSB
 
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter($"{outputSchemaName}.csv"))
                 {
+                    //
                     string schemaString = JsonConvert.SerializeObject(schemaObj.SchemaInstruments);
                     file.WriteLine(schemaString);
                     file.WriteLine(GetHeader(schemaObj, includeAllColumns));
-                    var i = 0;
 
-                    foreach (var record in schemaObj.CodeLibrary.Values)
+                    var max = (schemaObj.CodeLibrary.Record.Count() - 1);
+
+                    for (var i = 0; i < max; i++)
                     {
+                        var record = schemaObj.CodeLibrary.Record.ElementAt(i);
                         var complete = !record.Values.Any(x => string.IsNullOrEmpty(x.Value));
 
-                        if (!record.Values["completed"].Contains("X")) //complete) // && 
+                        if ((includeAllRows || !record.Values["completed"].Contains("X")) && record.Time > 0)
                         {
-                            i++;
                             var line = BaseCodeLibrary.GetDatasetRecord(record, schemaObj.SchemaInstruments, includeAllColumns, false);
-
                             file.WriteLine(line);
                         }
                     }
@@ -1483,7 +1507,6 @@ namespace IGSB
                 IGClient.Pause = (alreadyPaused ? alreadyPaused : false);
             } else R("NO_SCHEMA");
         }
-
 
         public void DeleteModel(string model)
         {
@@ -1817,9 +1840,11 @@ namespace IGSB
                 settingsFileJson = (JObject)JToken.ReadFrom(reader);
             }
 
+            key = key.ToLower();
+
             foreach (JObject code in settingsFileJson["shortcodes"])
             {
-                if (code["key"].ToString().Equals(key))
+                if (code["key"].ToString().ToLower().Equals(key))
                 {
                     retval = code["value"].ToString();
                     break;
@@ -1829,69 +1854,142 @@ namespace IGSB
             return retval;
         }
 
-        public void FeedDataset(string dataset, string columnName)
+        public void FeedDataset(string dataset, string columnName, int speedUp = 100)
         {
-            var datasetFileName = $@".\{dataset}.csv";
-
-            if (File.Exists(datasetFileName))
+            if (IGClient.Pause)
             {
-                var info = new FileInfo(datasetFileName);
-                var lines = File.ReadLines(datasetFileName);
+                var datasetFileName = $@".\{dataset}.csv";
 
-                if (lines.Count() > 0)
+                if (File.Exists(datasetFileName))
                 {
-                    var split = lines.ToList()[1].Split(',');
-                    var index = 0;
-                    var columnIndex = -1;
-                    var timestampIndex = -1;
+                    R("DATASET_FOUND");
 
-                    foreach (var column in split)
+                    if (speedUp <= 0 || speedUp > 100)
                     {
-                        var tempColumn = column.ToLower();
-
-                        if (tempColumn.Equals(columnName.ToLower()))
-                        {
-                            columnIndex = index;
-                            break;
-                        }
-
-                        index++;
+                        R("WRONG_SPEED");
                     }
-
-                    if (split[0].ToString().Equals("timestamp"))
-                    {
-                        timestampIndex = 0;
-                        M(enmMessageType.Info, $"Timestamp found");
-                    } else
-                        M(enmMessageType.Info, $"Timestamp not found");
-
-                    if (columnIndex >= 0)
-                        M(enmMessageType.Info, $"Column found");
                     else
-                        M(enmMessageType.Error, $"Column not found");
-
-                    if (columnIndex >= 0)
                     {
-                        var currentTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                        var subscription = (IGSubscriptionListener)IGClient.LSC.Subscriptions[0].Listeners[0];
+                        var info = new FileInfo(datasetFileName);
+                        var lines = File.ReadLines(datasetFileName);
 
-                        for (var i = 2; i < lines.Count(); i++)
+                        if (lines.Count() > 0)
                         {
-                            var line = lines.ElementAt(i);
-                            split = line.Split(',');
+                            R("DATASET_LINES", new List<string>() { lines.Count().ToString() });
 
-                            M(enmMessageType.Info, $"{(timestampIndex == -1 ? currentTimestamp : long.Parse(split[timestampIndex]))} - {split[columnIndex]}");
+                            var schemaString = lines.ToList()[0];
+                            var schema = (JObject)JsonConvert.DeserializeObject(schemaString);
 
-                            currentTimestamp = currentTimestamp + 1000;
+                            var split = lines.ToList()[1].Split(',');
+                            var columnIndex = -1;
+                            var timestampIndex = -1;
+                            var timeDiffIndex = -1;
 
-                            var changedFields = new Dictionary<string, string>();
-                            changedFields.Add(columnName, split[columnIndex]);
+                            var fieldName = string.Empty;
+                            var itemName = string.Empty;
 
-                            subscription.ExecuteUpdate(currentTimestamp, columnName, changedFields);
+                            for (var index = 0; index < schema["schemainstruments"].Count(); index++)
+                            {
+                                var token = schema["schemainstruments"].ElementAt(index);
+
+                                if (token["Key"].ToString().ToLower() == columnName)
+                                {
+                                    fieldName = token["Value"].ToString();
+                                    itemName = token["Name"].ToString();
+                                    break;
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(fieldName) && !string.IsNullOrEmpty(itemName))
+                            {
+                                columnIndex = GetColumnIndex(columnName, split);
+
+                                if (columnIndex == -1) R("COLUMN_NOT_FOUND");
+                                else
+                                {
+                                    timestampIndex = GetColumnIndex("timestamp", split);
+                                    timeDiffIndex = GetColumnIndex("timediff", split);
+
+                                    var currentTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                                    var currentTimeDiff = 0;
+                                    var subscription = (IGSubscriptionListener)IGClient.LSC.Subscriptions[0].Listeners[0];
+
+                                    if (!subscription.CheckKeyExists(itemName, fieldName))
+                                    {
+                                        R("INVALID_EPIC");
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            for (var i = 2; i < lines.Count(); i++)
+                                            {
+                                                TT();
+
+                                                var line = lines.ElementAt(i);
+                                                split = line.Split(',');
+
+                                                currentTimestamp = (timestampIndex >= 0 ? long.Parse(split[timestampIndex]) : currentTimestamp + 1000);
+
+                                                var changedFields = new Dictionary<string, string>();
+                                                changedFields.Add(fieldName, split[columnIndex]);
+
+                                                currentTimeDiff = (timestampIndex >= 0 ? int.Parse(split[timeDiffIndex]) : 1000);
+
+                                                if (currentTimeDiff > 60000)
+                                                {
+                                                    R("INVALID_TIMEDIFF", new List<string>() { Convert.ToInt32(currentTimeDiff / 1000).ToString() });
+                                                    break;
+                                                }
+
+                                                Thread.Sleep((currentTimeDiff / 100 * speedUp));
+
+                                                subscription.ExecuteUpdate(currentTimestamp, itemName, changedFields);
+
+                                                if (Console.KeyAvailable && CC("Confirm you want to stop (Y/n)? ", 'Y'))
+                                                {
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            M(enmMessageType.Error, ex.Message);
+                                        }
+                                    }
+                                }
+                            }
+                            else R("COLUMN_NOT_FOUND");
                         }
+                        else R("DATASET NO LINES");
                     }
                 }
+            } else
+                R("END_CAPTURE");
+        }
+
+        private int GetColumnIndex(string name, string[] columns, string found_msg = "FOUND", string notfound_msg = "NOTFOUND")
+        {
+            var retval = -1;
+
+            for (var index = 0; index < columns.Length; index++)
+            {
+                var column = columns[index];
+                var tempColumn = column.ToLower();
+
+                if (tempColumn.Equals(name.ToLower()))
+                {
+                    retval = index;
+                    break;
+                }
             }
+
+            if (retval == -1 && !string.IsNullOrEmpty(notfound_msg))
+                R(notfound_msg, new List<string>() { name });
+            else if (!string.IsNullOrEmpty(found_msg))
+                R(found_msg, new List<string>() { name });
+
+            return retval;
         }
     }
 }

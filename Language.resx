@@ -126,6 +126,12 @@
   <data name="CHECK_PASSWORD" xml:space="preserve">
     <value>Info;Checking password strength [{0}]</value>
   </data>
+  <data name="COLUMN_FOUND" xml:space="preserve">
+    <value>Info;Column found</value>
+  </data>
+  <data name="COLUMN_NOT_FOUND" xml:space="preserve">
+    <value>Error;Column not found</value>
+  </data>
   <data name="CONTINUOUS_DATASET" xml:space="preserve">
     <value>Info;DATASET, continuous display mode, filtered on [{0}] &gt;&gt;</value>
   </data>
@@ -138,8 +144,26 @@
   <data name="DATASET_EMPTIED" xml:space="preserve">
     <value>Info;Dataset emptied</value>
   </data>
+  <data name="DATASET_FOUND" xml:space="preserve">
+    <value>Info;Dataset was found</value>
+  </data>
+  <data name="DATASET_LINES" xml:space="preserve">
+    <value>Info;Dataset contains {0} lines</value>
+  </data>
+  <data name="DATASET_NOLINES" xml:space="preserve">
+    <value>Error;Dataset empty</value>
+  </data>
   <data name="ENCRYPTING_SETTINGS" xml:space="preserve">
     <value>Info;Encrypting settings file</value>
+  </data>
+  <data name="END_CAPTURE" xml:space="preserve">
+    <value>Error;You must end capturing of data first</value>
+  </data>
+  <data name="FOUND" xml:space="preserve">
+    <value>Info;Key {0} found</value>
+  </data>
+  <data name="GET_PASSWORD" xml:space="preserve">
+    <value>Info;Loading {0} and source {1},\nenter authentication password to confirm\nPassword:</value>
   </data>
   <data name="HELP" xml:space="preserve">
     <value>Info;Type 'help', '/?' or '/? search' for available commands</value>
@@ -147,14 +171,23 @@
   <data name="INACTIVATE_SCHEMA" xml:space="preserve">
     <value>Info;Schema has been made not active</value>
   </data>
+  <data name="INVALID_EPIC" xml:space="preserve">
+    <value>Error;That epic code does not belong to the currently loaded schema</value>
+  </data>
   <data name="INVALID_PARAMETERS" xml:space="preserve">
     <value>Error;Invalid parameters</value>
+  </data>
+  <data name="INVALID_TIMEDIFF" xml:space="preserve">
+    <value>Error;Invalid time difference [{0} seconds]</value>
   </data>
   <data name="MISSING_ARGS" xml:space="preserve">
     <value>Error;IGSB.Program ERROR: Missing some or all command line arguments\nss = Map to source key in settings file (mandatory i.e. Demo, Live), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)</value>
   </data>
   <data name="NEED_TO_RESTART" xml:space="preserve">
     <value>Error;Data capture is currently on pause, you need to 'begin' first</value>
+  </data>
+  <data name="NOTFOUND" xml:space="preserve">
+    <value>Error;Key {0} not found</value>
   </data>
   <data name="NO_AUTHENTICATION" xml:space="preserve">
     <value>Info;Unable to authenticate and start</value>
@@ -209,5 +242,8 @@
   </data>
   <data name="WEAK_PASSWORD" xml:space="preserve">
     <value>Error;A weak password has been supplied</value>
+  </data>
+  <data name="WRONG_SPEED" xml:space="preserve">
+    <value>Error;Speed should be less than or equal to 100 and more than 0</value>
   </data>
 </root>

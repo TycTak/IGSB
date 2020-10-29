@@ -1,0 +1,38 @@
+{
+  "watchfileid": "26105170-2B3E-4C1C-8BE3-B6D802D8D937",
+  "watchname": "Test List",
+  "currency": "GBP",
+  "alias": [
+    {
+      "name": "IX.D.FTSE.DAILY.IP",
+      "alias": "ftse"
+    }
+  ],
+  "schemas": [
+    {
+      "isactive": "true",
+      "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "schemaname": "ftse",
+      "unit": "ticks",
+      "unitvalue": "1",
+      "instruments": [
+        {
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{ftse}",
+          "datatype": "double",
+          "value": "OFFER"
+        },
+        {
+          "isnewrecord": "false",
+          "type": "capture",
+          "key": "bid",
+          "name": "MARKET:{ftse}",
+          "datatype": "double",
+          "value": "BID"
+        }
+      ]
+    }
+  ]
+}

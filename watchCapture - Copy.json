@@ -1,0 +1,51 @@
+{
+  "watchfileid": "26105170-2B3E-4C1C-8BE3-B6D802D8D937",
+  "watchname": "Test List",
+  "currency": "GBP",
+  "alias": [
+    {
+      "name": "IX.D.FTSE.DAILY.IP",
+      "alias": "ftse"
+    },
+    {
+      "name": "KA.D.MKS.DAILY.IP",
+      "alias": "mands"
+    }
+  ],
+  "schemas": [
+    {
+      "isactive": "true",
+      "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "schemaname": "ftse",
+      "unit": "ticks",
+      "unitvalue": "1",
+      "instruments": [
+        {
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{ftse}",
+          "datatype": "double",
+          "value": "OFFER"
+        }
+      ]
+    },
+    {
+      "isactive": "true",
+      "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
+      "schemaname": "mands",
+      "unit": "ticks",
+      "unitvalue": "1",
+      "instruments": [
+        {
+          "isnewrecord": "true",
+          "type": "capture",
+          "key": "offer",
+          "name": "MARKET:{mands}",
+          "datatype": "double",
+          "value": "OFFER"
+        }
+      ]
+    }
+  ]
+}

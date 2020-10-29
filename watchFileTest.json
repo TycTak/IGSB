@@ -21,7 +21,7 @@
       "isactive": "true",
       "schemaid": "AB0E6029-A624-4E58-990A-31D4B7DCBE30",
       "schemaname": "ftse",
-      "unit": "seconds",
+      "unit": "ticks",
       "unitvalue": "3",
       "instruments": [
         {

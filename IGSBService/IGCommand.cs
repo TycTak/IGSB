@@ -119,7 +119,7 @@ namespace IGSB
                     var bid = double.Parse("0" + retval.Response["snapshot"]["bid"].ToString());
                     var offer = double.Parse("0" + retval.Response["snapshot"]["offer"].ToString());
                     var spread = Math.Round((offer - bid), 2);
-                    var spreadPercentage = Math.Round(spread / ((spread + bid) / 2) * 100, 2);
+                    var spreadPercentage = Math.Round((spread / offer) * 100, 2);
 
                     retval.Response.Add(new JProperty("spread", spread.ToString()));
                     retval.Response.Add(new JProperty("percspread", spreadPercentage.ToString()));

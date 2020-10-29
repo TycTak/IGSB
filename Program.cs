@@ -29,9 +29,9 @@ namespace IGSB
                 var appPassword = (parsedArgs.Exists(x => x.Key == "cp") ? parsedArgs.Single(x => x.Key == "cp").Value : "");
                 var settingsFile = (parsedArgs.Exists(x => x.Key == "st") ? parsedArgs.Single(x => x.Key == "st").Value : "settings.json");
 
-                if (string.IsNullOrEmpty(appPassword)) appPassword = Log.GetPassword($"Loading {watchFile} and source {sourceKey},\nenter authentication password to confirm\nPassword: ");
+                if (string.IsNullOrEmpty(appPassword)) appPassword = Log.GetPassword("GET_PASSWORD", new List<string>() { watchFile, sourceKey });
 
-                IGClient.Initialise(Log.Message, Log.KeyPressed, Log.Beep, Log.Response, Log.ConfirmText, Log.ConfirmChar);
+                IGClient.Initialise(Log.Message, Log.KeyPressed, Log.Beep, Log.Response, Log.ConfirmText, Log.ConfirmChar, Log.TickTock);
 
                 if (!IGClient.Authenticate(settingsFile, sourceKey, watchFile, appPassword))
                     Log.Response("NO_AUTHENTICATION");

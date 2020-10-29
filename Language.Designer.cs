@@ -88,6 +88,24 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Info;Column found.
+        /// </summary>
+        internal static string COLUMN_FOUND {
+            get {
+                return ResourceManager.GetString("COLUMN_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Column not found.
+        /// </summary>
+        internal static string COLUMN_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("COLUMN_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Info;DATASET, continuous display mode, filtered on [{0}] &gt;&gt;.
         /// </summary>
         internal static string CONTINUOUS_DATASET {
@@ -124,11 +142,65 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Info;Dataset was found.
+        /// </summary>
+        internal static string DATASET_FOUND {
+            get {
+                return ResourceManager.GetString("DATASET_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Dataset contains {0} lines.
+        /// </summary>
+        internal static string DATASET_LINES {
+            get {
+                return ResourceManager.GetString("DATASET_LINES", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Dataset empty.
+        /// </summary>
+        internal static string DATASET_NOLINES {
+            get {
+                return ResourceManager.GetString("DATASET_NOLINES", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Info;Encrypting settings file.
         /// </summary>
         internal static string ENCRYPTING_SETTINGS {
             get {
                 return ResourceManager.GetString("ENCRYPTING_SETTINGS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;You must end capturing of data first.
+        /// </summary>
+        internal static string END_CAPTURE {
+            get {
+                return ResourceManager.GetString("END_CAPTURE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Key {0} found.
+        /// </summary>
+        internal static string FOUND {
+            get {
+                return ResourceManager.GetString("FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Loading {0} and source {1},\nenter authentication password to confirm\nPassword:.
+        /// </summary>
+        internal static string GET_PASSWORD {
+            get {
+                return ResourceManager.GetString("GET_PASSWORD", resourceCulture);
             }
         }
         
@@ -151,11 +223,29 @@ namespace IGSB {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error;That epic code does not belong to the currently loaded schema.
+        /// </summary>
+        internal static string INVALID_EPIC {
+            get {
+                return ResourceManager.GetString("INVALID_EPIC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error;Invalid parameters.
         /// </summary>
         internal static string INVALID_PARAMETERS {
             get {
                 return ResourceManager.GetString("INVALID_PARAMETERS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Invalid time difference [{0} seconds].
+        /// </summary>
+        internal static string INVALID_TIMEDIFF {
+            get {
+                return ResourceManager.GetString("INVALID_TIMEDIFF", resourceCulture);
             }
         }
         
@@ -237,6 +327,15 @@ namespace IGSB {
         internal static string NO_SCHEMA_FOUND {
             get {
                 return ResourceManager.GetString("NO_SCHEMA_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Key {0} not found.
+        /// </summary>
+        internal static string NOTFOUND {
+            get {
+                return ResourceManager.GetString("NOTFOUND", resourceCulture);
             }
         }
         
@@ -336,6 +435,15 @@ namespace IGSB {
         internal static string WEAK_PASSWORD {
             get {
                 return ResourceManager.GetString("WEAK_PASSWORD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error;Speed should be less than or equal to 100 and more than 0.
+        /// </summary>
+        internal static string WRONG_SPEED {
+            get {
+                return ResourceManager.GetString("WRONG_SPEED", resourceCulture);
             }
         }
     }

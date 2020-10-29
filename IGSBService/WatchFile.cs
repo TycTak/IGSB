@@ -5,7 +5,7 @@ using System.Reflection;
 using static IGSB.BaseFormulaLibrary;
 using System.Linq;
 using static IGSB.IGClient;
-using static IGSB.WatchFile.SchemaInstrument;
+using static IGSB.SchemaInstrument;
 using ConsoleApp6ML.ConsoleApp;
 using Akka.Dispatch.SysMsg;
 
@@ -29,63 +29,9 @@ namespace IGSB
 
             public enmUnit Unit { get; set; }
 
-            public int UnitValue { get; set; }
+            public double UnitValue { get; set; }
 
             public bool IsActive { get; set; }
-        }
-
-        public class SchemaInstrument
-        {
-            public enum enmType
-            {
-                formula,
-                capture,
-                transform
-            }
-
-            public enum enmUnit
-            {
-                ticks,
-                seconds,
-                none
-            }
-
-            public enum enmDataType
-            {
-                @double6,
-                @double,
-                @int,
-                @string,
-                @long
-            }
-
-            public bool IsNewRecordEvent { get; set; }
-
-            public bool IsColumn { get; set; }
-
-            public bool IsSignal { get; set; }
-
-            public bool IsFuture { get; set; }
-
-            public string CacheKey { get; set; }
-
-            public string Key { get; set; }
-
-            public string Value { get; set; }
-
-            public string Name { get; set; }
-
-            public string Transform { get; set; }
-
-            public enmType Type { get; set; }
-
-            public enmDataType DataType { get; set; }
-
-            public enmUnit Unit { get; set; }
-
-            public int UnitValue { get; set; }
-
-            public Dictionary<string, string> Settings { get; set; }
         }
 
         public string WatchFileUri { get; set; }
@@ -154,7 +100,7 @@ namespace IGSB
                     watchSchema.SchemaId = Substitute(schema["schemaid"].ToString());
                     watchSchema.SchemaName = Substitute(schema["schemaname"].ToString());
                     watchSchema.Unit = (SchemaInstrument.enmUnit)Enum.Parse(typeof(SchemaInstrument.enmUnit), schema["unit"].ToString());
-                    watchSchema.UnitValue = int.Parse(schema["unitvalue"].ToString());
+                    watchSchema.UnitValue = double.Parse(schema["unitvalue"].ToString());
                     watchSchema.IsActive = (schema.ContainsKey("isactive") ? bool.Parse(schema["isactive"].ToString()) : false);
                     watchSchema.SchemaInstruments = new List<SchemaInstrument>();
 

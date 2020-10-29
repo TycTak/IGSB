@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static IGSB.BaseCodeLibrary;
 using static IGSB.WatchFile;
-using static IGSB.WatchFile.SchemaInstrument;
+using static IGSB.SchemaInstrument;
 
 //https://www.investopedia.com/terms/t/technical-analysis-of-stocks-and-trends.asp
 
@@ -28,7 +28,7 @@ namespace IGSB
             public enmUnit Unit { get; set; }
             public Dictionary<string, List<string>> Transform { get; set; }
             public string Value { get; set; }
-            public ValueInstrument Target { get; set; }
+            public RecordInstrument Target { get; set; }
             public List<LocalFormula.ItemInfo> Items { get; set; }
             public enmValueType ValueType { get; set; }
             public int Range { get; set; }
@@ -49,7 +49,7 @@ namespace IGSB
             range
         }
 
-        private int GetRange(ValueInstrument target, List<ValueInstrument> values, enmUnit unit, int position, int max)
+        private int GetRange(RecordInstrument target, List<RecordInstrument> values, enmUnit unit, int position, int max)
         {
             var retval = -1;
 
@@ -67,7 +67,7 @@ namespace IGSB
             return retval;
         }
 
-        private List<int> GetSelected(List<ValueInstrument> values, LocalFormula localFormula)
+        private List<int> GetSelected(List<RecordInstrument> values, LocalFormula localFormula)
         {
             var retval = new List<int>();
 
@@ -210,7 +210,7 @@ namespace IGSB
             return retval;
         }
 
-        private bool CheckValid(List<ValueInstrument> values, List<int> selectedIndex, LocalFormula localFormula)
+        private bool CheckValid(List<RecordInstrument> values, List<int> selectedIndex, LocalFormula localFormula)
         {
             var retval = true;
 
@@ -226,7 +226,7 @@ namespace IGSB
             return retval;
         }
 
-        public void TransformData(SchemaInstrument formula, List<SchemaInstrument> instruments, List<ValueInstrument> values)
+        public void TransformData(SchemaInstrument formula, List<SchemaInstrument> instruments, List<RecordInstrument> values)
         {
             //if (!string.IsNullOrEmpty(formula.Transform))
             //{
@@ -289,7 +289,7 @@ namespace IGSB
             stochasticoscillator, // done
         }
 
-        public void ExecuteMethod(SchemaInstrument formula, List<ValueInstrument> values)
+        public void ExecuteMethod(SchemaInstrument formula, List<RecordInstrument> values)
         {
             var localFormula = GetUnit(formula);
             var selectedIndex = GetSelected(values, localFormula);
@@ -471,7 +471,7 @@ namespace IGSB
             }
         }
 
-        private string GetString(int index, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        private string GetString(int index, LocalFormula localFormula, List<int> selectedIndex, List<RecordInstrument> values)
         {
             var value = GetValueInstrument(index, selectedIndex, values);
             var item = localFormula.Items[index];
@@ -479,12 +479,12 @@ namespace IGSB
             return value.Values[item.FieldName];
         }
 
-        private ValueInstrument GetValueInstrument(int index, List<int> selectedIndex, List<ValueInstrument> values)
+        private RecordInstrument GetValueInstrument(int index, List<int> selectedIndex, List<RecordInstrument> values)
         {
             return values[selectedIndex[index]];
         }
 
-        private double GetDouble(int index, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        private double GetDouble(int index, LocalFormula localFormula, List<int> selectedIndex, List<RecordInstrument> values)
         {
             var value = GetValueInstrument(index, selectedIndex, values);
             var item = localFormula.Items[index];
@@ -492,7 +492,7 @@ namespace IGSB
             return Double.Parse(value.Values[item.FieldName]);
         }
 
-        private double GetInt(int index, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        private double GetInt(int index, LocalFormula localFormula, List<int> selectedIndex, List<RecordInstrument> values)
         {
             var value = GetValueInstrument(index, selectedIndex, values);
             var item = localFormula.Items[index];
@@ -500,7 +500,7 @@ namespace IGSB
             return Int32.Parse(value.Values[item.FieldName]);
         }
 
-        private string Formula_EMA(SchemaInstrument formula, LocalFormula localFormula, List<int> selectedIndex, List<ValueInstrument> values)
+        private string Formula_EMA(SchemaInstrument formula, LocalFormula localFormula, List<int> selectedIndex, List<RecordInstrument> values)
         {
             var retval = string.Empty;
             var closing = GetDouble(selectedIndex.Count - 1, localFormula, selectedIndex, values);

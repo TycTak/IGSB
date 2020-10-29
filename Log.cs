@@ -84,9 +84,15 @@ namespace IGSB
             return cki;
         }
 
-        static public string GetPassword(string message)
+        static public string GetPassword(string code, List<string> args = null)
         {
             var password = string.Empty;
+
+            var rm = new ResourceManager(typeof(Language));
+            var message = rm.GetString(code);
+
+            var text = message.Split(";");
+            message = string.Format(text[1], args.ToArray());
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(message);
@@ -141,6 +147,21 @@ namespace IGSB
                 default:
                     Error(message);
                     break;
+            }
+        }
+
+        static private string ticktock_Char;
+
+        static public void TickTock()
+        {
+            if (!Console.KeyAvailable)
+            {
+                if (string.IsNullOrEmpty(ticktock_Char) || ticktock_Char == "\\") ticktock_Char = "-";
+                else if (ticktock_Char == "-") ticktock_Char = "/";
+                else if (ticktock_Char == "/") ticktock_Char = "+";
+                else if (ticktock_Char == "+") ticktock_Char = "\\";
+
+                Console.Write(ticktock_Char + "\r");
             }
         }
 

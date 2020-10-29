@@ -29,6 +29,7 @@ namespace IGSB
         public void onCommandSecondLevelSubscriptionError(int code, string message, string key)
         {
             M(enmMessageType.Debug, String.Format("IGSubscriptionListener.onCommandSecondLevelSubscriptionError {0} - {1} - {2}", code, message, key));
+            M(enmMessageType.Error, String.Format("IGSubscriptionListener.onCommandSecondLevelSubscriptionError {0} - {1} - {2}", code, message, key));
         }
 
         public void onEndOfSnapshot(string itemName, int itemPos)
@@ -41,8 +42,29 @@ namespace IGSB
             M(enmMessageType.Debug, String.Format("IGSubscriptionListener.onItemLostUpdates {0} - {1} - {2}", itemName, itemPos, lostUpdates));
         }
 
+        public bool CheckKeyExists(string itemName, string fieldName)
+        {
+            var retval = true;
+
+            for (var i = 0; i < watchList.Schemas.Count; i++)
+            {
+                if (watchList.Schemas[i].IsActive)
+                {
+                    if (!watchList.Schemas[i].CodeLibrary.CheckKeyExists(itemName, fieldName))
+                    {
+                        retval = false;
+                        break;
+                    }
+                }
+            }
+
+            return retval;
+        }
+
         public void ExecuteUpdate(long timeStamp, string itemName, IDictionary<string, string> changeFields)
         {
+            //M(enmMessageType.Info, "+");
+
             foreach (var changed in changeFields)
             {
                 for (var i = 0; i < watchList.Schemas.Count; i++)
@@ -73,32 +95,6 @@ namespace IGSB
             {
                 ExecuteUpdate(0, itemUpdate.ItemName, itemUpdate.ChangedFields);
             }
-
-            //if (!IGClient.Pause)
-            //{
-            //    foreach (var changed in itemUpdate.ChangedFields)
-            //    {
-            //        for (var i = 0; i < watchList.Schemas.Count; i++)
-            //        {
-            //            if (watchList.Schemas[i].IsActive)
-            //            {
-            //                var pushed = watchList.Schemas[i].CodeLibrary.Push(itemUpdate.ItemName, changed.Key, changed.Value);
-
-            //                if (pushed && IGClient.StreamDisplay == enmContinuousDisplay.Subscription)
-            //                {
-            //                    var message = String.Format("{0} {1}:{2}:{3}", watchList.Schemas[i].SchemaName, itemUpdate.ItemName, changed.Key, changed.Value);
-
-            //                    if (string.IsNullOrEmpty(IGClient.Filter) || message.ToLower().Contains(IGClient.Filter.ToLower()))
-            //                    {
-            //                        M(enmMessageType.Info, message);
-            //                    }
-            //                }
-
-            //                //M(enmMessageType.Debug, String.Format("IGClientListener.onItemUpdate {0} {1} {2} {3}", pushed, itemUpdate.ItemName, changed.Key, changed.Value));
-            //            }
-            //        }
-            //    }
-            //}
         }
 
         public void onListenEnd(Subscription subscription)
@@ -124,6 +120,7 @@ namespace IGSB
         public void onSubscriptionError(int code, string message)
         {
             M(enmMessageType.Debug, String.Format("IGSubscriptionListener.onSubscriptionError FAILED: {0} - {1}", code, message));
+            M(enmMessageType.Error, String.Format("IGSubscriptionListener.onSubscriptionError FAILED: {0} - {1}", code, message));
         }
 
         public void onUnsubscription()
