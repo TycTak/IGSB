@@ -6,8 +6,8 @@ using static IGSB.BaseFormulaLibrary;
 using System.Linq;
 using static IGSB.IGClient;
 using static IGSB.SchemaInstrument;
-using ConsoleApp6ML.ConsoleApp;
 using Akka.Dispatch.SysMsg;
+using static IGSBShared.Delegates;
 
 namespace IGSB
 {

@@ -4,6 +4,7 @@ using System.Linq;
 using static IGSB.BaseCodeLibrary;
 using static IGSB.WatchFile;
 using static IGSB.SchemaInstrument;
+using IGSBShared;
 
 //https://www.investopedia.com/terms/t/technical-analysis-of-stocks-and-trends.asp
 
@@ -49,23 +50,23 @@ namespace IGSB
             range
         }
 
-        private int GetRange(RecordInstrument target, List<RecordInstrument> values, enmUnit unit, int position, int max)
-        {
-            var retval = -1;
+        //private int GetRange(RecordInstrument target, List<RecordInstrument> values, enmUnit unit, int position, int max)
+        //{
+        //    var retval = -1;
 
-            if (unit == enmUnit.seconds)
-            {
-                var fromMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(position) * 1000);
-                var toMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(position) * 1000);
-                retval = values.FindLastIndex(x => x.Time < fromMilliseconds);
-            }
-            else if (unit == enmUnit.ticks)
-            {
-                retval = (values.Count - max + position - 1);
-            }
+        //    if (unit == enmUnit.seconds)
+        //    {
+        //        var fromMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(position) * 1000);
+        //        var toMilliseconds = DateTimeOffset.Now.ToUnixTimeMilliseconds() - (Math.Abs(position) * 1000);
+        //        retval = values.FindLastIndex(x => x.Time < fromMilliseconds);
+        //    }
+        //    else if (unit == enmUnit.ticks)
+        //    {
+        //        retval = (values.Count - max + position - 1);
+        //    }
 
-            return retval;
-        }
+        //    return retval;
+        //}
 
         private List<int> GetSelected(List<RecordInstrument> values, LocalFormula localFormula)
         {
@@ -301,6 +302,7 @@ namespace IGSB
                 var target = values[selectedIndex[0]];
 
                 string newValue = "0";
+                bool allowNull = true;
 
                 switch (System.Enum.Parse(typeof(enmProcess), formula.Name.ToLower()))
                 {
@@ -311,6 +313,7 @@ namespace IGSB
                             var signalRange = (formula.Settings.ContainsKey("range") ? double.Parse(formula.Settings["range"]) : 5);
 
                             newValue = (change > signalRange ? $"1": (change < -signalRange ? $"-1" : "0"));
+                            allowNull = false;
                         }
                         break;
                     case enmProcess.getvalue:
@@ -465,7 +468,7 @@ namespace IGSB
                         break;
                 }
 
-                newValue = (newValue == "0" ? null : newValue);
+                newValue = (newValue == "0" && allowNull ? null : newValue);
                 
                 target.Values[localFormula.Items[0].FieldName] = newValue;
             }

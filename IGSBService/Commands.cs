@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using static IGSB.IGClient;
+using static IGSBShared.Delegates;
 
 namespace IGSB
 {
@@ -463,13 +464,13 @@ namespace IGSB
                         break;
                     case "/e":
                     case "eval":
-                        if (Validate("MS;ON", cmdArgs)) IGClient.ML.EvaluateModel($"{cmdArgs[1]}", Convert.ToInt32(cmdArgs[2]));
+                        //if (Validate("MS;ON", cmdArgs)) IGClient.ML.EvaluateModel($"{cmdArgs[1]}", Convert.ToInt32(cmdArgs[2]));
                         break;
                     case "/t":
                     case "train":
-                        if (Validate("MS;MS;OS", cmdArgs))
-                            IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3]);
-                        else
+                        if (Validate("MS;MS;OS", cmdArgs)) {
+                        //IGClient.ML.TrainModel($"{cmdArgs[1]}", $"{cmdArgs[2]}", cmdArgs[3]);
+                        } else
                         {
                             switch (cmdArgs[1].ToLower())
                             {
@@ -485,7 +486,7 @@ namespace IGSB
                         break;
                     case "/ru":
                     case "run":
-                        if (Validate("MS;OS", cmdArgs)) IGClient.ML.RunModel($"{cmdArgs[1]}");
+                        //if (Validate("MS;OS", cmdArgs)) IGClient.ML.RunModel($"{cmdArgs[1]}");
                         break;
                     case "/m":
                     case "model":
@@ -513,15 +514,15 @@ namespace IGSB
                                     break;
                                 case "s":
                                 case "save":
-                                    if (Validate("MS;MS", cmdArgs)) IGClient.ML.SaveModel(cmdArgs[2]);
+                                    //if (Validate("MS;MS", cmdArgs)) IGClient.ML.SaveModel(cmdArgs[2]);
                                     break;
                                 case "b":
                                 case "bin":
-                                    IGClient.ML.CloseModel();
+                                    //IGClient.ML.CloseModel();
                                     break;
                                 case "l":
                                 case "load":
-                                    if (Validate("MS;MS", cmdArgs)) IGClient.ML.LoadModel(cmdArgs[2]);
+                                    //if (Validate("MS;MS", cmdArgs)) IGClient.ML.LoadModel(cmdArgs[2]);
                                     break;
                                 default:
                                     R("UNKNOWN");
@@ -1086,7 +1087,7 @@ namespace IGSB
             if (schemaObj != null)
             {
                 schemaObj.CodeLibrary.Reset();
-                R("DATASET_EMPTIED");
+                R("SCHEMA_EMPTIED");
             }
             else R("NO_SCHEMA");
         }
@@ -1107,7 +1108,7 @@ namespace IGSB
                 {
                     var record = schemaObj.CodeLibrary.Record[i];
 
-                    var complete = !record.Values.Any(x => string.IsNullOrEmpty(x.Value));
+                    var complete = !record.Values["completed"].Contains("X"); //.Any(x => string.IsNullOrEmpty(x.Value));
 
                     if (includeAllRows || complete)
                     {
@@ -1328,7 +1329,7 @@ namespace IGSB
             help.Add("$ = List all short codes");
             help.Add("$+ = Set a short code i.e. add or update");
             help.Add("$- = Delete a short code");
-            help.Add("feed <dataset> <column> <field> <item> = Feed the system with a previously saved dataset add to all schemas (/fe)");
+            help.Add("feed <dataset> <columns> <speed 1-100> = Feed the system with a previously saved dataset add to all schemas, columns are comma seperated, original speed = 100, fast speed = 1 (/fe)");
 
             foreach (var line in help.OrderBy(x => x))
             {
@@ -1498,6 +1499,9 @@ namespace IGSB
                         {
                             var line = BaseCodeLibrary.GetDatasetRecord(record, schemaObj.SchemaInstruments, includeAllColumns, false);
                             file.WriteLine(line);
+                        } else
+                        {
+                            M(enmMessageType.Info, $"Record missed");
                         }
                     }
 
@@ -1854,7 +1858,7 @@ namespace IGSB
             return retval;
         }
 
-        public void FeedDataset(string dataset, string columnName, int speedUp = 100)
+        public void FeedDataset(string dataset, string columns, int speedUp = 100)
         {
             if (IGClient.Pause)
             {
@@ -1876,96 +1880,153 @@ namespace IGSB
                         if (lines.Count() > 0)
                         {
                             R("DATASET_LINES", new List<string>() { lines.Count().ToString() });
+                            R("COLUMNS_SELECTED", new List<string>() { columns });
+
+                            var headings = lines.ToList()[1].Split(',');
+                            var timestampIndex = GetColumnIndex("timestamp", headings);
+                            var timeDiffIndex = GetColumnIndex("timediff", headings);
+                            var columnNames = columns.ToLower().Split(',');
+                            var columnInfos = new List<ColumnInfo>();
 
                             var schemaString = lines.ToList()[0];
-                            var schema = (JObject)JsonConvert.DeserializeObject(schemaString);
+                            var schema = (JArray)JsonConvert.DeserializeObject(schemaString);
 
-                            var split = lines.ToList()[1].Split(',');
-                            var columnIndex = -1;
-                            var timestampIndex = -1;
-                            var timeDiffIndex = -1;
-
-                            var fieldName = string.Empty;
-                            var itemName = string.Empty;
-
-                            for (var index = 0; index < schema["schemainstruments"].Count(); index++)
+                            for(var i = 0; i < columnNames.Length; i++)
                             {
-                                var token = schema["schemainstruments"].ElementAt(index);
+                                GetFieldInfo(schema, columnNames[i], headings, columnInfos);
+                            }
 
-                                if (token["Key"].ToString().ToLower() == columnName)
+                            var notFound = false;
+                            var subscription = (IGSubscriptionListener)IGClient.LSC.Subscriptions[0].Listeners[0];
+
+                            for (var i = 0; i < columnInfos.Count; i++)
+                            {
+                                var columnInfo = columnInfos.ElementAt(i);
+
+                                if (columnInfo.index == -1)
                                 {
-                                    fieldName = token["Value"].ToString();
-                                    itemName = token["Name"].ToString();
-                                    break;
+                                    R("COLUMN_NOT_FOUND", new List<string>() { columnInfo.name });
+                                    notFound = true;
+                                }
+
+                                foreach(var field in columnInfo.fieldNames)
+                                {
+                                    if (!subscription.CheckKeyExists(columnInfo.itemName, field.fieldName))
+                                    {
+                                        R("INVALID_EPIC", new List<string>() { columnInfo.itemName, field.fieldName });
+                                        notFound = true;
+                                    }
                                 }
                             }
 
-                            if (!string.IsNullOrEmpty(fieldName) && !string.IsNullOrEmpty(itemName))
+                            if (!notFound)
                             {
-                                columnIndex = GetColumnIndex(columnName, split);
+                                var currentTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                                var currentTimeDiff = 0;
 
-                                if (columnIndex == -1) R("COLUMN_NOT_FOUND");
-                                else
+                                try
                                 {
-                                    timestampIndex = GetColumnIndex("timestamp", split);
-                                    timeDiffIndex = GetColumnIndex("timediff", split);
-
-                                    var currentTimestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                                    var currentTimeDiff = 0;
-                                    var subscription = (IGSubscriptionListener)IGClient.LSC.Subscriptions[0].Listeners[0];
-
-                                    if (!subscription.CheckKeyExists(itemName, fieldName))
+                                    for (var i = 2; i < lines.Count(); i++)
                                     {
-                                        R("INVALID_EPIC");
-                                    }
-                                    else
-                                    {
-                                        try
+                                        TT(lines.Count(), i);
+
+                                        var line = lines.ElementAt(i);
+                                        var values = line.Split(',');
+
+                                        currentTimestamp = (timestampIndex >= 0 ? long.Parse(values[timestampIndex]) : currentTimestamp + 1000);
+                                        currentTimeDiff = (timestampIndex >= 0 ? int.Parse(values[timeDiffIndex]) : 1000);
+
+                                        if (currentTimeDiff > 60000)
                                         {
-                                            for (var i = 2; i < lines.Count(); i++)
+                                            R("INVALID_TIMEDIFF", new List<string>() { Convert.ToInt32(currentTimeDiff / 1000).ToString(), i.ToString() });
+                                            currentTimeDiff = 10000;
+                                        }
+
+                                        Thread.Sleep((currentTimeDiff / 100 * speedUp));
+
+                                        foreach(var columnInfo in columnInfos)
+                                        {
+                                            var changedFields = new Dictionary<string, string>();
+
+                                            for (var x = 0; x < columnInfo.fieldNames.Count; x++)
                                             {
-                                                TT();
-
-                                                var line = lines.ElementAt(i);
-                                                split = line.Split(',');
-
-                                                currentTimestamp = (timestampIndex >= 0 ? long.Parse(split[timestampIndex]) : currentTimestamp + 1000);
-
-                                                var changedFields = new Dictionary<string, string>();
-                                                changedFields.Add(fieldName, split[columnIndex]);
-
-                                                currentTimeDiff = (timestampIndex >= 0 ? int.Parse(split[timeDiffIndex]) : 1000);
-
-                                                if (currentTimeDiff > 60000)
-                                                {
-                                                    R("INVALID_TIMEDIFF", new List<string>() { Convert.ToInt32(currentTimeDiff / 1000).ToString() });
-                                                    break;
-                                                }
-
-                                                Thread.Sleep((currentTimeDiff / 100 * speedUp));
-
-                                                subscription.ExecuteUpdate(currentTimestamp, itemName, changedFields);
-
-                                                if (Console.KeyAvailable && CC("Confirm you want to stop (Y/n)? ", 'Y'))
-                                                {
-                                                    break;
-                                                }
+                                                changedFields.Add(columnInfo.fieldNames[x].fieldName, values[columnInfo.fieldNames[x].columnIndex]);
                                             }
+
+                                            subscription.ExecuteUpdate(currentTimestamp, columnInfo.itemName, changedFields);
                                         }
-                                        catch (Exception ex)
+
+                                        if (Console.KeyAvailable)
                                         {
-                                            M(enmMessageType.Error, ex.Message);
+                                            Console.ReadKey();
+                                            if (CC("Confirm you want to stop (Y/n)? ", 'Y')) break;
                                         }
                                     }
                                 }
+                                catch (Exception ex)
+                                {
+                                    M(enmMessageType.Error, ex.Message);
+                                }
                             }
-                            else R("COLUMN_NOT_FOUND");
                         }
                         else R("DATASET NO LINES");
                     }
                 }
             } else
                 R("END_CAPTURE");
+        }
+
+        private class FieldInfo
+        {
+            public string fieldName;
+            public int columnIndex;
+        }
+
+        private class ColumnInfo
+        {
+            public int index;
+            public List<FieldInfo> fieldNames;
+            public string itemName;
+            public string name;
+        }
+
+        private void GetFieldInfo(JArray jsonArray, string columnName, string[] headings, List<ColumnInfo> columnInfos)
+        {
+            var count = (columnInfos.Count == 0 ? 0 : columnInfos.Last().index + 1);
+            var found = false;
+
+            for (var index = 0; index < jsonArray.Count(); index++)
+            {
+                var token = jsonArray.ElementAt(index);
+
+                if (token["Key"].ToString().ToLower() == columnName)
+                {
+                    var columnInfo = columnInfos.SingleOrDefault<ColumnInfo>(x => x.itemName == token["Name"].ToString());
+
+                    if (columnInfo != null)
+                    {
+                        if (!columnInfo.fieldNames.Exists(x => x.fieldName == token["Value"].ToString()))
+                        {
+                            columnInfo.fieldNames.Add(new FieldInfo() { columnIndex = GetColumnIndex(columnName, headings), fieldName = token["Value"].ToString() });
+                            found = true;
+                        }
+                        else
+                        {
+                            columnInfos.Add(new ColumnInfo() { index = count, fieldNames = new List<FieldInfo>() { new FieldInfo() { columnIndex = GetColumnIndex(columnName, headings), fieldName = token["Value"].ToString() } }, itemName = token["Name"].ToString() });
+                            count++;
+                            found = true;
+                        }
+                        break;
+                    } else
+                    {
+                        columnInfos.Add(new ColumnInfo() { index = count, fieldNames = new List<FieldInfo>() { new FieldInfo() { columnIndex = GetColumnIndex(columnName, headings), fieldName = token["Value"].ToString() } }, itemName = token["Name"].ToString() });
+                        count++;
+                        found = true;
+                    }
+                }
+            }
+
+            if (!found) columnInfos.Add(new ColumnInfo() { name = columnName, index = -1, fieldNames = new List<FieldInfo>(), itemName = null });
         }
 
         private int GetColumnIndex(string name, string[] columns, string found_msg = "FOUND", string notfound_msg = "NOTFOUND")

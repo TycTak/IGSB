@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IGSB", "IGSB.csproj", "{E68
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IGSBService", "IGSBService\IGSBService.csproj", "{7970E506-201B-401A-A65E-536FDF0C8D49}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IGSBModelling", "IGSBModelling\IGSBModelling.csproj", "{9F33243B-01D3-41F9-9437-D700BE029CBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IGSBShared", "IGSBShared\IGSBShared.csproj", "{D0ABE58B-D4DA-4F3E-9AD6-F5B8FE939273}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{7970E506-201B-401A-A65E-536FDF0C8D49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7970E506-201B-401A-A65E-536FDF0C8D49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7970E506-201B-401A-A65E-536FDF0C8D49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F33243B-01D3-41F9-9437-D700BE029CBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F33243B-01D3-41F9-9437-D700BE029CBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F33243B-01D3-41F9-9437-D700BE029CBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F33243B-01D3-41F9-9437-D700BE029CBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0ABE58B-D4DA-4F3E-9AD6-F5B8FE939273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0ABE58B-D4DA-4F3E-9AD6-F5B8FE939273}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0ABE58B-D4DA-4F3E-9AD6-F5B8FE939273}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0ABE58B-D4DA-4F3E-9AD6-F5B8FE939273}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

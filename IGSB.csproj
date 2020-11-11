@@ -8,11 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="IGSBModelling\**" />
     <Compile Remove="IGSBService\**" />
+    <Compile Remove="IGSBShared\**" />
     <Compile Remove="lib\**" />
+    <EmbeddedResource Remove="IGSBModelling\**" />
     <EmbeddedResource Remove="IGSBService\**" />
+    <EmbeddedResource Remove="IGSBShared\**" />
     <EmbeddedResource Remove="lib\**" />
+    <None Remove="IGSBModelling\**" />
     <None Remove="IGSBService\**" />
+    <None Remove="IGSBShared\**" />
     <None Remove="lib\**" />
   </ItemGroup>
 
@@ -28,7 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NLog" Version="4.7.2" />
+    <PackageReference Include="NLog" Version="4.7.5" />
     <PackageReference Include="System.Windows.Extensions" Version="4.7.0" />
   </ItemGroup>
 

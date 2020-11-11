@@ -97,11 +97,20 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error;Column not found.
+        ///   Looks up a localized string similar to Error;Column [{0}] not found.
         /// </summary>
         internal static string COLUMN_NOT_FOUND {
             get {
                 return ResourceManager.GetString("COLUMN_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Columns selected [{0}].
+        /// </summary>
+        internal static string COLUMNS_SELECTED {
+            get {
+                return ResourceManager.GetString("COLUMNS_SELECTED", resourceCulture);
             }
         }
         
@@ -129,15 +138,6 @@ namespace IGSB {
         internal static string CONTINUOUS_SUBSCRIPTION {
             get {
                 return ResourceManager.GetString("CONTINUOUS_SUBSCRIPTION", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Info;Dataset emptied.
-        /// </summary>
-        internal static string DATASET_EMPTIED {
-            get {
-                return ResourceManager.GetString("DATASET_EMPTIED", resourceCulture);
             }
         }
         
@@ -223,7 +223,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error;That epic code does not belong to the currently loaded schema.
+        ///   Looks up a localized string similar to Error;That epic code [{0},{1}] does not belong to the currently loaded schema.
         /// </summary>
         internal static string INVALID_EPIC {
             get {
@@ -241,7 +241,7 @@ namespace IGSB {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error;Invalid time difference [{0} seconds].
+        ///   Looks up a localized string similar to Error;Invalid time difference [{0} seconds, line {1}], reducing to 10 seconds.
         /// </summary>
         internal static string INVALID_TIMEDIFF {
             get {
@@ -408,6 +408,15 @@ namespace IGSB {
         internal static string SCHEMA_ALREADY_INACTIVE {
             get {
                 return ResourceManager.GetString("SCHEMA_ALREADY_INACTIVE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info;Schema emptied.
+        /// </summary>
+        internal static string SCHEMA_EMPTIED {
+            get {
+                return ResourceManager.GetString("SCHEMA_EMPTIED", resourceCulture);
             }
         }
         

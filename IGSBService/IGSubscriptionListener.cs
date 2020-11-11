@@ -2,6 +2,7 @@
 using System;
 using static IGSB.IGClient;
 using System.Collections.Generic;
+using static IGSBShared.Delegates;
 
 namespace IGSB
 {
@@ -63,8 +64,6 @@ namespace IGSB
 
         public void ExecuteUpdate(long timeStamp, string itemName, IDictionary<string, string> changeFields)
         {
-            //M(enmMessageType.Info, "+");
-
             foreach (var changed in changeFields)
             {
                 for (var i = 0; i < watchList.Schemas.Count; i++)

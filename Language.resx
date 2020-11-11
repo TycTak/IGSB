@@ -126,11 +126,14 @@
   <data name="CHECK_PASSWORD" xml:space="preserve">
     <value>Info;Checking password strength [{0}]</value>
   </data>
+  <data name="COLUMNS_SELECTED" xml:space="preserve">
+    <value>Info;Columns selected [{0}]</value>
+  </data>
   <data name="COLUMN_FOUND" xml:space="preserve">
     <value>Info;Column found</value>
   </data>
   <data name="COLUMN_NOT_FOUND" xml:space="preserve">
-    <value>Error;Column not found</value>
+    <value>Error;Column [{0}] not found</value>
   </data>
   <data name="CONTINUOUS_DATASET" xml:space="preserve">
     <value>Info;DATASET, continuous display mode, filtered on [{0}] &gt;&gt;</value>
@@ -140,9 +143,6 @@
   </data>
   <data name="CONTINUOUS_SUBSCRIPTION" xml:space="preserve">
     <value>Info;SUBSCRIPTION, continuous display mode, filtered on [{0}] &gt;</value>
-  </data>
-  <data name="DATASET_EMPTIED" xml:space="preserve">
-    <value>Info;Dataset emptied</value>
   </data>
   <data name="DATASET_FOUND" xml:space="preserve">
     <value>Info;Dataset was found</value>
@@ -172,13 +172,13 @@
     <value>Info;Schema has been made not active</value>
   </data>
   <data name="INVALID_EPIC" xml:space="preserve">
-    <value>Error;That epic code does not belong to the currently loaded schema</value>
+    <value>Error;That epic code [{0},{1}] does not belong to the currently loaded schema</value>
   </data>
   <data name="INVALID_PARAMETERS" xml:space="preserve">
     <value>Error;Invalid parameters</value>
   </data>
   <data name="INVALID_TIMEDIFF" xml:space="preserve">
-    <value>Error;Invalid time difference [{0} seconds]</value>
+    <value>Error;Invalid time difference [{0} seconds, line {1}], reducing to 10 seconds</value>
   </data>
   <data name="MISSING_ARGS" xml:space="preserve">
     <value>Error;IGSB.Program ERROR: Missing some or all command line arguments\nss = Map to source key in settings file (mandatory i.e. Demo, Live), case sensitive\nwf = Name of watch file to use (mandatory)\nst = Settings file name (optional, defaults to settings.json)\ncp = Password to use for encrypting settings file (optional, but will be prompted if not supplied)</value>
@@ -233,6 +233,9 @@
   </data>
   <data name="SCHEMA_ALREADY_INACTIVE" xml:space="preserve">
     <value>Error;Schema is already inactive</value>
+  </data>
+  <data name="SCHEMA_EMPTIED" xml:space="preserve">
+    <value>Info;Schema emptied</value>
   </data>
   <data name="START" xml:space="preserve">
     <value>Info;Type 'begin' or '/bc' to begin collecting data</value>

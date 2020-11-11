@@ -1,5 +1,5 @@
 ﻿using com.lightstreamer.client;
-using ConsoleApp6ML.ConsoleApp;
+using IGSBModelling;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using static IGSBShared.Delegates;
 
 namespace IGSB
 {
@@ -23,19 +24,6 @@ namespace IGSB
 
     static public class IGClient
     {
-        public enum enmMessageType
-        {
-            Info,
-            Warn,
-            Error,
-            Fatal,
-            Exit,
-            Debug,
-            Trace,
-            Highlight,
-            NoLine
-        }
-
         public enum enmContinuousDisplay
         {
             None,
@@ -53,13 +41,13 @@ namespace IGSB
 
         static public int C { get; set; }
 
-        public delegate void Message(enmMessageType messageType, string message);
-        public delegate void Response(string code, List<string> args = null);
-        public delegate bool ConfirmText(string message, string accept);
-        public delegate bool ConfirmChar(string message, char accept);
-        public delegate void TickTock();
-        public delegate bool BreakProcess();
-        public delegate void Beep();
+        //public delegate void Message(enmMessageType messageType, string message);
+        //public delegate void Response(string code, List<string> args = null);
+        //public delegate bool ConfirmText(string message, string accept);
+        //public delegate bool ConfirmChar(string message, char accept);
+        //public delegate void TickTock(int total, int current);
+        //public delegate bool BreakProcess();
+        //public delegate void Beep();
 
         static public event Message M;
 
@@ -90,9 +78,9 @@ namespace IGSB
                 IGClientListener.M += msgDelegate;
                 IGSubscriptionListener.M += msgDelegate;
                 WatchFile.M += msgDelegate;
-                ModelBuilder.M += msgDelegate;
-                ModelBuilder.C += confirmDelegate;
-                ModelBuilder.P += breakDelegate;
+                //ModelBuilder.M += msgDelegate;
+                //ModelBuilder.C += confirmDelegate;
+                //ModelBuilder.P += breakDelegate;
             }
 
             M(enmMessageType.Info, "Machine Learning IG Spread Betting");

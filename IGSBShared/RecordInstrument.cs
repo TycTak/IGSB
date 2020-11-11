@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace IGSB
+namespace IGSBShared
 {
-
     public class RecordInstrument
     {
-        public string Key { get; set; }
-
         public long Time { get; set; }
 
         public long TimeDiff { get; set; }

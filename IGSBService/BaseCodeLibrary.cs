@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IGSBShared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -6,6 +7,7 @@ using System.Timers;
 using static IGSB.IGClient;
 using static IGSB.SchemaInstrument;
 using static IGSB.WatchFile;
+using static IGSBShared.Delegates;
 
 namespace IGSB
 {
@@ -159,11 +161,10 @@ namespace IGSB
 
             if (includePrediction && predictValues.Count > 0 && !record.Values["completed"].Contains("X"))
             {
-                var tempRecord = new RecordInstrument() { Key = record.Key, Time = record.Time, Values = predictValues };
+                var tempRecord = new RecordInstrument() { Time = record.Time, Values = predictValues };
 
-                var prediction = IGClient.ML.Predict(tempRecord);
-
-                if (prediction != null) message += (string.IsNullOrEmpty(message) ? "" : ", ") + $"p={string.Format("{0:0.000}", prediction.Label)}";
+                //var prediction = IGClient.ML.Predict(tempRecord);
+                //if (prediction != null) message += (string.IsNullOrEmpty(message) ? "" : ", ") + $"p={string.Format("{0:0.000}", prediction.Label)}";
             }
 
             return message;
@@ -197,6 +198,7 @@ namespace IGSB
         {
             var currentRecord = Record.Last();
             var milliseconds = (timeStamp <= 0 ? DateTimeOffset.Now.ToUnixTimeMilliseconds() : timeStamp);
+            var seconds = (milliseconds / 1000);
 
             var previousRecord = Record.ElementAt(Record.Count == 1 ? 0 : Record.Count - 2);
             currentRecord.TimeDiff = (previousRecord.Time == 0 ? 0 : milliseconds - previousRecord.Time);
@@ -234,11 +236,11 @@ namespace IGSB
                 isNewRecord = actionType == enmActionType.TimedEvent;
                 isCorrect = true;
 
-                var temp = DateTimeOffset.Now.ToUnixTimeSeconds();
+                var temp = seconds; // DateTimeOffset.Now.ToUnixTimeSeconds();
                 if ((temp - TempTimeValue) > this.unitValue || timeStamp != 0)
                 {
                     isCorrect = true;
-                    TempTimeValue = DateTimeOffset.Now.ToUnixTimeSeconds();
+                    TempTimeValue = seconds; // DateTimeOffset.Now.ToUnixTimeSeconds();
                 }
             }
 

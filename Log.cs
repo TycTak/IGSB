@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Resources;
 using System.Threading;
 using static IGSB.IGClient;
+using static IGSBShared.Delegates;
 
 namespace IGSB
 {
@@ -152,9 +153,9 @@ namespace IGSB
 
         static private string ticktock_Char;
 
-        static public void TickTock()
+        static public void TickTock(int total, int current)
         {
-            if (!Console.KeyAvailable)
+            if (!Console.KeyAvailable && total == 0)
             {
                 if (string.IsNullOrEmpty(ticktock_Char) || ticktock_Char == "\\") ticktock_Char = "-";
                 else if (ticktock_Char == "-") ticktock_Char = "/";
@@ -162,6 +163,10 @@ namespace IGSB
                 else if (ticktock_Char == "+") ticktock_Char = "\\";
 
                 Console.Write(ticktock_Char + "\r");
+            } else if (!Console.KeyAvailable)
+            {
+                var percentage = Math.Round((current / Convert.ToDouble(total)) * 100, 2);
+                Console.Write($"{percentage.ToString("0.00")}%\r");
             }
         }
 
